@@ -1,9 +1,10 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-
-// Import the generated route tree
+import { Provider } from 'react-redux';
+import { store } from './store';
 import { routeTree } from './routeTree.gen'
+import { Toaster } from 'sonner';
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
@@ -31,7 +32,10 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
+      <Provider store={store}>
+         <Toaster richColors position="top-center" />
       <RouterProvider router={router} />
+    </Provider>
     </StrictMode>,
   )
 }
