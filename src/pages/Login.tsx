@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import api from '@/lib/axios';
+import { authService } from '@/service/authService';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -13,7 +13,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      await api.post('/auth/send-otp', { email });
+      await authService.sendOtp(email);
       toast.success('OTP sent successfully to your email!');
       navigate({ to: '/otp', search: { email } });
     } catch (err: any) {

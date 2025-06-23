@@ -1,11 +1,9 @@
 import { useSearch } from '@tanstack/react-router';
 import { Route } from '@/routes/(auth)/otp';
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
-import api from '@/lib/axios';
-import { loginSuccess } from '@/store/slices/authSlice';
+import { authService } from '@/service/authService';
 
 const Otp = () => {
   const search = useSearch({ from: Route.id });
@@ -13,7 +11,6 @@ const Otp = () => {
 
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,10 +18,7 @@ const Otp = () => {
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/verify-otp', { email, otp });
-      const { accessToken, refreshToken, isNewUser } = res.data;
-
-      dispatch(loginSuccess({ accessToken, refreshToken }));
+      const { isNewUser } = await authService.verifyOtp(email, otp);
 
       toast.success('Logged in successfully!');
 
@@ -35,8 +29,7 @@ const Otp = () => {
           navigate({ to: '/dashboard' });
         }
       }, 100);
-
-    }catch (err: any) {
+    } catch (err: any) {
       toast.error(err.response?.data?.message || 'Invalid OTP');
     } finally {
       setLoading(false);

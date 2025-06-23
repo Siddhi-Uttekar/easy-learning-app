@@ -1,6 +1,6 @@
 // src/routes/(authenticated)/route.tsx
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { authService } from '@/lib/authService';
+import { authService } from '@/service/authService';
 
 export const Route = createFileRoute('/(authenticated)')({
   beforeLoad: ({ location }) => {
