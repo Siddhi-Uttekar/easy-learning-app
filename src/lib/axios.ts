@@ -3,7 +3,7 @@ import {store} from '../store/index';
 import { logout } from '../store/slices/authSlice';
 
 const api = axios.create({
-    baseURL: "/api",
+    baseURL: "https://app.webfuze.in/",
     headers: {
         'Content-Type' : 'application/json',
     },
