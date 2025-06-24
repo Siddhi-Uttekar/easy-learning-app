@@ -16,6 +16,7 @@ import { Route as authenticatedProfileRouteImport } from './routes/(authenticate
 import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as authenticatedDashboardRouteRouteImport } from './routes/(authenticated)/Dashboard/route'
+import { Route as authenticatedDashboardIndexRouteImport } from './routes/(authenticated)/Dashboard/index'
 import { Route as authenticatedDashboardSettingsRouteImport } from './routes/(authenticated)/Dashboard/settings'
 
 const authenticatedRouteRoute = authenticatedRouteRouteImport.update({
@@ -52,6 +53,12 @@ const authenticatedDashboardRouteRoute =
     path: '/Dashboard',
     getParentRoute: () => authenticatedRouteRoute,
   } as any)
+const authenticatedDashboardIndexRoute =
+  authenticatedDashboardIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => authenticatedDashboardRouteRoute,
+  } as any)
 const authenticatedDashboardSettingsRoute =
   authenticatedDashboardSettingsRouteImport.update({
     id: '/settings',
@@ -66,14 +73,15 @@ export interface FileRoutesByFullPath {
   '/otp': typeof authOtpRoute
   '/profile': typeof authenticatedProfileRoute
   '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
+  '/Dashboard/': typeof authenticatedDashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof authenticatedRouteRouteWithChildren
-  '/Dashboard': typeof authenticatedDashboardRouteRouteWithChildren
   '/login': typeof authLoginRoute
   '/otp': typeof authOtpRoute
   '/profile': typeof authenticatedProfileRoute
   '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
+  '/Dashboard': typeof authenticatedDashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/(auth)/otp': typeof authOtpRoute
   '/(authenticated)/profile': typeof authenticatedProfileRoute
   '/(authenticated)/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
+  '/(authenticated)/Dashboard/': typeof authenticatedDashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -95,14 +104,15 @@ export interface FileRouteTypes {
     | '/otp'
     | '/profile'
     | '/Dashboard/settings'
+    | '/Dashboard/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/Dashboard'
     | '/login'
     | '/otp'
     | '/profile'
     | '/Dashboard/settings'
+    | '/Dashboard'
   id:
     | '__root__'
     | '/'
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
     | '/(auth)/otp'
     | '/(authenticated)/profile'
     | '/(authenticated)/Dashboard/settings'
+    | '/(authenticated)/Dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -172,6 +183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedDashboardRouteRouteImport
       parentRoute: typeof authenticatedRouteRoute
     }
+    '/(authenticated)/Dashboard/': {
+      id: '/(authenticated)/Dashboard/'
+      path: '/'
+      fullPath: '/Dashboard/'
+      preLoaderRoute: typeof authenticatedDashboardIndexRouteImport
+      parentRoute: typeof authenticatedDashboardRouteRoute
+    }
     '/(authenticated)/Dashboard/settings': {
       id: '/(authenticated)/Dashboard/settings'
       path: '/settings'
@@ -198,11 +216,13 @@ const authRouteRouteWithChildren = authRouteRoute._addFileChildren(
 
 interface authenticatedDashboardRouteRouteChildren {
   authenticatedDashboardSettingsRoute: typeof authenticatedDashboardSettingsRoute
+  authenticatedDashboardIndexRoute: typeof authenticatedDashboardIndexRoute
 }
 
 const authenticatedDashboardRouteRouteChildren: authenticatedDashboardRouteRouteChildren =
   {
     authenticatedDashboardSettingsRoute: authenticatedDashboardSettingsRoute,
+    authenticatedDashboardIndexRoute: authenticatedDashboardIndexRoute,
   }
 
 const authenticatedDashboardRouteRouteWithChildren =
