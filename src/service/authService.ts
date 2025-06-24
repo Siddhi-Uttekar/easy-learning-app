@@ -5,10 +5,12 @@ import { loginSuccess } from '@/store/slices/authSlice';
 class AuthService {
   public user: any = null;
 
+  //function to send otp
   async sendOtp(email: string) {
     return api.post('/auth/send-otp', { email });
   }
 
+  //function to verify otp
   async verifyOtp(email: string, otp: string) {
   try {
     const res = await api.post('/auth/verify-otp', { email, otp });
@@ -16,10 +18,8 @@ class AuthService {
 
     console.log("token", access_token);
 
-    // Save token to Redux
     store.dispatch(loginSuccess({ accessToken: access_token }));
 
-    // Save token to LocalStorage
     localStorage.setItem('accessToken', access_token);
 
     return { isNewUser };
@@ -28,7 +28,6 @@ class AuthService {
     throw error;
   }
 }
-
 
   isLoggedIn() {
     const accessToken = store.getState().auth.accessToken;

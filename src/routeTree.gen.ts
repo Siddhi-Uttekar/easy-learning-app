@@ -13,9 +13,10 @@ import { Route as authenticatedRouteRouteImport } from './routes/(authenticated)
 import { Route as authRouteRouteImport } from './routes/(auth)/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as authenticatedProfileRouteImport } from './routes/(authenticated)/profile'
-import { Route as authenticatedDashboardRouteImport } from './routes/(authenticated)/dashboard'
 import { Route as authOtpRouteImport } from './routes/(auth)/otp'
 import { Route as authLoginRouteImport } from './routes/(auth)/login'
+import { Route as authenticatedDashboardRouteRouteImport } from './routes/(authenticated)/Dashboard/route'
+import { Route as authenticatedDashboardSettingsRouteImport } from './routes/(authenticated)/Dashboard/settings'
 
 const authenticatedRouteRoute = authenticatedRouteRouteImport.update({
   id: '/(authenticated)',
@@ -35,11 +36,6 @@ const authenticatedProfileRoute = authenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => authenticatedRouteRoute,
 } as any)
-const authenticatedDashboardRoute = authenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => authenticatedRouteRoute,
-} as any)
 const authOtpRoute = authOtpRouteImport.update({
   id: '/otp',
   path: '/otp',
@@ -50,45 +46,73 @@ const authLoginRoute = authLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => authRouteRoute,
 } as any)
+const authenticatedDashboardRouteRoute =
+  authenticatedDashboardRouteRouteImport.update({
+    id: '/Dashboard',
+    path: '/Dashboard',
+    getParentRoute: () => authenticatedRouteRoute,
+  } as any)
+const authenticatedDashboardSettingsRoute =
+  authenticatedDashboardSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => authenticatedDashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof authenticatedRouteRouteWithChildren
+  '/Dashboard': typeof authenticatedDashboardRouteRouteWithChildren
   '/login': typeof authLoginRoute
   '/otp': typeof authOtpRoute
-  '/dashboard': typeof authenticatedDashboardRoute
   '/profile': typeof authenticatedProfileRoute
+  '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof authenticatedRouteRouteWithChildren
+  '/Dashboard': typeof authenticatedDashboardRouteRouteWithChildren
   '/login': typeof authLoginRoute
   '/otp': typeof authOtpRoute
-  '/dashboard': typeof authenticatedDashboardRoute
   '/profile': typeof authenticatedProfileRoute
+  '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/(auth)': typeof authRouteRouteWithChildren
   '/(authenticated)': typeof authenticatedRouteRouteWithChildren
+  '/(authenticated)/Dashboard': typeof authenticatedDashboardRouteRouteWithChildren
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/otp': typeof authOtpRoute
-  '/(authenticated)/dashboard': typeof authenticatedDashboardRoute
   '/(authenticated)/profile': typeof authenticatedProfileRoute
+  '/(authenticated)/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/otp' | '/dashboard' | '/profile'
+  fullPaths:
+    | '/'
+    | '/Dashboard'
+    | '/login'
+    | '/otp'
+    | '/profile'
+    | '/Dashboard/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/otp' | '/dashboard' | '/profile'
+  to:
+    | '/'
+    | '/Dashboard'
+    | '/login'
+    | '/otp'
+    | '/profile'
+    | '/Dashboard/settings'
   id:
     | '__root__'
     | '/'
     | '/(auth)'
     | '/(authenticated)'
+    | '/(authenticated)/Dashboard'
     | '/(auth)/login'
     | '/(auth)/otp'
-    | '/(authenticated)/dashboard'
     | '/(authenticated)/profile'
+    | '/(authenticated)/Dashboard/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -127,13 +151,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedProfileRouteImport
       parentRoute: typeof authenticatedRouteRoute
     }
-    '/(authenticated)/dashboard': {
-      id: '/(authenticated)/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof authenticatedDashboardRouteImport
-      parentRoute: typeof authenticatedRouteRoute
-    }
     '/(auth)/otp': {
       id: '/(auth)/otp'
       path: '/otp'
@@ -147,6 +164,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/login'
       preLoaderRoute: typeof authLoginRouteImport
       parentRoute: typeof authRouteRoute
+    }
+    '/(authenticated)/Dashboard': {
+      id: '/(authenticated)/Dashboard'
+      path: '/Dashboard'
+      fullPath: '/Dashboard'
+      preLoaderRoute: typeof authenticatedDashboardRouteRouteImport
+      parentRoute: typeof authenticatedRouteRoute
+    }
+    '/(authenticated)/Dashboard/settings': {
+      id: '/(authenticated)/Dashboard/settings'
+      path: '/settings'
+      fullPath: '/Dashboard/settings'
+      preLoaderRoute: typeof authenticatedDashboardSettingsRouteImport
+      parentRoute: typeof authenticatedDashboardRouteRoute
     }
   }
 }
@@ -165,13 +196,28 @@ const authRouteRouteWithChildren = authRouteRoute._addFileChildren(
   authRouteRouteChildren,
 )
 
+interface authenticatedDashboardRouteRouteChildren {
+  authenticatedDashboardSettingsRoute: typeof authenticatedDashboardSettingsRoute
+}
+
+const authenticatedDashboardRouteRouteChildren: authenticatedDashboardRouteRouteChildren =
+  {
+    authenticatedDashboardSettingsRoute: authenticatedDashboardSettingsRoute,
+  }
+
+const authenticatedDashboardRouteRouteWithChildren =
+  authenticatedDashboardRouteRoute._addFileChildren(
+    authenticatedDashboardRouteRouteChildren,
+  )
+
 interface authenticatedRouteRouteChildren {
-  authenticatedDashboardRoute: typeof authenticatedDashboardRoute
+  authenticatedDashboardRouteRoute: typeof authenticatedDashboardRouteRouteWithChildren
   authenticatedProfileRoute: typeof authenticatedProfileRoute
 }
 
 const authenticatedRouteRouteChildren: authenticatedRouteRouteChildren = {
-  authenticatedDashboardRoute: authenticatedDashboardRoute,
+  authenticatedDashboardRouteRoute:
+    authenticatedDashboardRouteRouteWithChildren,
   authenticatedProfileRoute: authenticatedProfileRoute,
 }
 
