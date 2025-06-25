@@ -26,7 +26,7 @@ const Otp = () => {
         if (isNewUser) {
           navigate({ to: '/profile' });
         } else {
-          navigate({ to: '/dashboard' });
+          navigate({ to: '/Dashboard' });
         }
       }, 100);
     } catch (err: any) {

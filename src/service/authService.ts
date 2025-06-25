@@ -29,10 +29,16 @@ class AuthService {
   }
 }
 
+  // isLoggedIn() {
+  //   const accessToken = store.getState().auth.accessToken;
+  //   return !!accessToken;
+  // }
   isLoggedIn() {
-    const accessToken = store.getState().auth.accessToken;
-    return !!accessToken;
-  }
+  const tokenInStore = store.getState().auth.accessToken;
+  const tokenInStorage = localStorage.getItem('accessToken');
+  return !!(tokenInStore || tokenInStorage);
+}
+
 }
 
 export const authService = new AuthService();

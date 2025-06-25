@@ -18,6 +18,7 @@ import { Route as authLoginRouteImport } from './routes/(auth)/login'
 import { Route as authenticatedDashboardRouteRouteImport } from './routes/(authenticated)/Dashboard/route'
 import { Route as authenticatedDashboardIndexRouteImport } from './routes/(authenticated)/Dashboard/index'
 import { Route as authenticatedDashboardSettingsRouteImport } from './routes/(authenticated)/Dashboard/settings'
+import { Route as authenticatedDashboardCreateCourseRouteRouteImport } from './routes/(authenticated)/Dashboard/create-course/route'
 
 const authenticatedRouteRoute = authenticatedRouteRouteImport.update({
   id: '/(authenticated)',
@@ -65,6 +66,12 @@ const authenticatedDashboardSettingsRoute =
     path: '/settings',
     getParentRoute: () => authenticatedDashboardRouteRoute,
   } as any)
+const authenticatedDashboardCreateCourseRouteRoute =
+  authenticatedDashboardCreateCourseRouteRouteImport.update({
+    id: '/create-course',
+    path: '/create-course',
+    getParentRoute: () => authenticatedDashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof authenticatedRouteRouteWithChildren
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof authLoginRoute
   '/otp': typeof authOtpRoute
   '/profile': typeof authenticatedProfileRoute
+  '/Dashboard/create-course': typeof authenticatedDashboardCreateCourseRouteRoute
   '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
   '/Dashboard/': typeof authenticatedDashboardIndexRoute
 }
@@ -80,6 +88,7 @@ export interface FileRoutesByTo {
   '/login': typeof authLoginRoute
   '/otp': typeof authOtpRoute
   '/profile': typeof authenticatedProfileRoute
+  '/Dashboard/create-course': typeof authenticatedDashboardCreateCourseRouteRoute
   '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
   '/Dashboard': typeof authenticatedDashboardIndexRoute
 }
@@ -92,6 +101,7 @@ export interface FileRoutesById {
   '/(auth)/login': typeof authLoginRoute
   '/(auth)/otp': typeof authOtpRoute
   '/(authenticated)/profile': typeof authenticatedProfileRoute
+  '/(authenticated)/Dashboard/create-course': typeof authenticatedDashboardCreateCourseRouteRoute
   '/(authenticated)/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
   '/(authenticated)/Dashboard/': typeof authenticatedDashboardIndexRoute
 }
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/otp'
     | '/profile'
+    | '/Dashboard/create-course'
     | '/Dashboard/settings'
     | '/Dashboard/'
   fileRoutesByTo: FileRoutesByTo
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/otp'
     | '/profile'
+    | '/Dashboard/create-course'
     | '/Dashboard/settings'
     | '/Dashboard'
   id:
@@ -122,6 +134,7 @@ export interface FileRouteTypes {
     | '/(auth)/login'
     | '/(auth)/otp'
     | '/(authenticated)/profile'
+    | '/(authenticated)/Dashboard/create-course'
     | '/(authenticated)/Dashboard/settings'
     | '/(authenticated)/Dashboard/'
   fileRoutesById: FileRoutesById
@@ -197,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedDashboardSettingsRouteImport
       parentRoute: typeof authenticatedDashboardRouteRoute
     }
+    '/(authenticated)/Dashboard/create-course': {
+      id: '/(authenticated)/Dashboard/create-course'
+      path: '/create-course'
+      fullPath: '/Dashboard/create-course'
+      preLoaderRoute: typeof authenticatedDashboardCreateCourseRouteRouteImport
+      parentRoute: typeof authenticatedDashboardRouteRoute
+    }
   }
 }
 
@@ -215,12 +235,15 @@ const authRouteRouteWithChildren = authRouteRoute._addFileChildren(
 )
 
 interface authenticatedDashboardRouteRouteChildren {
+  authenticatedDashboardCreateCourseRouteRoute: typeof authenticatedDashboardCreateCourseRouteRoute
   authenticatedDashboardSettingsRoute: typeof authenticatedDashboardSettingsRoute
   authenticatedDashboardIndexRoute: typeof authenticatedDashboardIndexRoute
 }
 
 const authenticatedDashboardRouteRouteChildren: authenticatedDashboardRouteRouteChildren =
   {
+    authenticatedDashboardCreateCourseRouteRoute:
+      authenticatedDashboardCreateCourseRouteRoute,
     authenticatedDashboardSettingsRoute: authenticatedDashboardSettingsRoute,
     authenticatedDashboardIndexRoute: authenticatedDashboardIndexRoute,
   }
