@@ -2,6 +2,9 @@ import api from '@/lib/axios';
 import { store } from '@/store';
 import { loginSuccess } from '@/store/slices/authSlice';
 
+import { jwtDecode } from 'jwt-decode';
+
+
 class AuthService {
   public user: any = null;
 
@@ -38,6 +41,20 @@ class AuthService {
   const tokenInStorage = localStorage.getItem('accessToken');
   return !!(tokenInStore || tokenInStorage);
 }
+
+
+  isAdmin() {
+    const token = store.getState().auth.accessToken || localStorage.getItem('accessToken');
+    if (!token) return false;
+
+    try {
+      const decoded: any = jwtDecode(token);
+      return decoded?.role === 'teacher' || decoded?.role === 'admin';
+    } catch (error) {
+      console.error('Invalid token:', error);
+      return false;
+    }
+  }
 
 }
 
