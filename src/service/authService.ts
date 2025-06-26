@@ -32,10 +32,6 @@ class AuthService {
   }
 }
 
-  // isLoggedIn() {
-  //   const accessToken = store.getState().auth.accessToken;
-  //   return !!accessToken;
-  // }
   isLoggedIn() {
   const tokenInStore = store.getState().auth.accessToken;
   const tokenInStorage = localStorage.getItem('accessToken');
@@ -49,7 +45,7 @@ class AuthService {
 
     try {
       const decoded: any = jwtDecode(token);
-      return decoded?.role === 'teacher' || decoded?.role === 'admin';
+      return decoded?.role === 'TEACHER' || decoded?.role === 'admin';
     } catch (error) {
       console.error('Invalid token:', error);
       return false;

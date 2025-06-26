@@ -22,13 +22,13 @@ const Otp = () => {
 
       toast.success('Logged in successfully!');
 
-      setTimeout(() => {
+
         if (isNewUser) {
           navigate({ to: '/profile' });
         } else {
           navigate({ to: '/Dashboard' });
         }
-      }, 100);
+      
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Invalid OTP');
     } finally {

@@ -23,6 +23,8 @@ const formSchema = z.object({
 export type FormDataType = z.infer<typeof formSchema>;
 
 export function CreateCoursePage() {
+
+
   const [loading, setLoading] = useState(false);
 
   const {
@@ -35,27 +37,38 @@ export function CreateCoursePage() {
   });
 
   const onSubmit = async (data: FormDataType) => {
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("title", data.title);
-      formData.append("description", data.description);
-      formData.append("price", data.price.toString());
-      formData.append("category", data.category);
-      formData.append("tags", data.tags || "");
-      formData.append("image", data.image);
+  setLoading(true);
+  try {
+    const formData = new FormData();
+    formData.append("title", data.title);
+    formData.append("description", data.description);
+    formData.append("price", data.price.toString());
+    formData.append("category", data.category);
 
-      await api.post("/courses", formData);
+    const tagArray = data.tags
+      ?.split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0) || [];
 
-      toast.success("Course created successfully!");
-      // Optionally redirect after success
-      // navigate({ to: "/dashboard/courses" });
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to create course");
-    } finally {
-      setLoading(false);
-    }
-  };
+    tagArray.forEach((tag) => {
+      formData.append("tags[]", tag);
+    });
+
+    formData.append("image", data.image);
+
+    await api.post("/courses", formData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    toast.success("Course created successfully!");
+  } catch (err: any) {
+    toast.error(err.response?.data?.message || "Failed to create course");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="max-w-xl mx-auto mt-10 p-6 border rounded-lg shadow">
