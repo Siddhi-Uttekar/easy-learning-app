@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import api from "@/lib/axios";
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -26,6 +27,7 @@ export function CreateCoursePage() {
 
 
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const {
     register,
@@ -63,6 +65,7 @@ export function CreateCoursePage() {
     });
 
     toast.success("Course created successfully!");
+    navigate({ to: "/Dashboard/courses" });
   } catch (err: any) {
     toast.error(err.response?.data?.message || "Failed to create course");
   } finally {
