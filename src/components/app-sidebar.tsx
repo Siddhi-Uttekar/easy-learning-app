@@ -15,6 +15,10 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconBook,
+  IconClipboard,
+  IconPlus,
+  IconFileText,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -40,7 +44,7 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/Dashboard",
       icon: IconDashboard,
     },
     {
@@ -50,7 +54,7 @@ const data = {
     },
     {
       title: "Analytics",
-      url: "#",
+      url: "/analytics",
       icon: IconChartBar,
     },
     {
@@ -64,50 +68,68 @@ const data = {
       icon: IconUsers,
     },
   ],
-  navClouds: [
+  navCourses: [
     {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
+      title: "Courses",
+      url: "/courses",
+      icon: IconBook,
+      isActive: false,
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "All Courses",
+          url: "/courses",
         },
         {
-          title: "Archived",
-          url: "#",
+          title: "My Courses",
+          url: "/courses/my-courses",
         },
       ],
     },
     {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
+      title: "Create Course",
+      url: "/create-course",
+      icon: IconPlus,
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "New Course",
+          url: "/create-course",
         },
         {
-          title: "Archived",
-          url: "#",
+          title: "Course Templates",
+          url: "/create-course/templates",
+        },
+      ],
+    },
+  ],
+  navTests: [
+    {
+      title: "Tests",
+      url: "/tests",
+      icon: IconClipboard,
+      isActive: false,
+      items: [
+        {
+          title: "All Tests",
+          url: "/tests",
+        },
+        {
+          title: "My Tests",
+          url: "/tests/my-tests",
         },
       ],
     },
     {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
+      title: "Create Test",
+      url: "/tests/create",
+      icon: IconFileText,
       items: [
         {
-          title: "Active Proposals",
-          url: "#",
+          title: "New Test",
+          url: "/tests/create",
         },
         {
-          title: "Archived",
-          url: "#",
+          title: "Test Templates",
+          url: "/tests/create/templates",
         },
       ],
     },
@@ -115,7 +137,7 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/settings",
       icon: IconSettings,
     },
     {
@@ -168,6 +190,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <NavMain items={data.navCourses} />
+        <NavMain items={data.navTests} />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
