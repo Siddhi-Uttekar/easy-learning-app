@@ -1,4 +1,4 @@
-import * as React from "react"
+import * as React from "react";
 import {
   IconCamera,
   IconChartBar,
@@ -19,12 +19,12 @@ import {
   IconClipboard,
   IconPlus,
   IconFileText,
-} from "@tabler/icons-react"
+} from "@tabler/icons-react";
 
-import { NavDocuments } from "@/components/nav-documents"
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavDocuments } from "@/components/nav-documents";
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
   SidebarContent,
@@ -33,7 +33,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { authService } from "@/service/authService";
 
 const data = {
   user: {
@@ -54,7 +55,7 @@ const data = {
     },
     {
       title: "Analytics",
-      url: "/analytics",
+      url: "#",
       icon: IconChartBar,
     },
     {
@@ -71,7 +72,7 @@ const data = {
   navCourses: [
     {
       title: "Courses",
-      url: "/courses",
+      url: "/Dashboard/courses",
       icon: IconBook,
       isActive: false,
       items: [
@@ -87,7 +88,7 @@ const data = {
     },
     {
       title: "Create Course",
-      url: "/create-course",
+      url: "Dashboard/create-course",
       icon: IconPlus,
       items: [
         {
@@ -120,7 +121,7 @@ const data = {
     },
     {
       title: "Create Test",
-      url: "/tests/create",
+      url: "Dashboard/tests/create",
       icon: IconFileText,
       items: [
         {
@@ -168,9 +169,10 @@ const data = {
       icon: IconFileWord,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user = authService.user;
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -182,22 +184,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Easy Learning</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavMain items={data.navCourses} />
-        <NavMain items={data.navTests} />
+        <NavMain items={data.navMain} title={data.navMain[0].title} />
+        <NavMain items={data.navCourses} title={data.navCourses[0].title} />
+        <NavMain items={data.navTests} title={data.navTests[0].title} />
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
