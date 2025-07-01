@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, BookOpen, Users, FileText, Sliders } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 const formSchema = z.object({
   courseId: z.number(),
@@ -35,6 +36,7 @@ export function CreateTestPage() {
   const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
   const [chaptersLoading, setChaptersLoading] = useState(false);
   const [coursesLoading, setCoursesLoading] = useState(true);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("");
 
   const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm<FormDataType>({
     resolver: zodResolver(formSchema),
@@ -65,7 +67,6 @@ export function CreateTestPage() {
     fetchCourses();
   }, []);
 
-//for chapters selection!!
   const handleCourseChange = async (id: string) => {
     setValue("courseId", Number(id));
     setChapters([]);
@@ -82,7 +83,40 @@ export function CreateTestPage() {
       setChaptersLoading(false);
     }
   };
-//
+
+  // Handle overall difficulty selection
+  const handleOverallDifficultyChange = (difficulty: string) => {
+    setSelectedDifficulty(difficulty);
+    setValue("difficulty", difficulty as "easy" | "medium" | "hard");
+
+    // Set predefined percentages based on difficulty
+    switch (difficulty) {
+      case "easy":
+        setValue("easyPercent", 70);
+        setValue("mediumPercent", 25);
+        setValue("hardPercent", 5);
+        break;
+      case "medium":
+        setValue("easyPercent", 30);
+        setValue("mediumPercent", 50);
+        setValue("hardPercent", 20);
+        break;
+      case "hard":
+        setValue("easyPercent", 15);
+        setValue("mediumPercent", 35);
+        setValue("hardPercent", 50);
+        break;
+    }
+  };
+
+  // Handle manual slider changes
+  const handleSliderChange = (field: "easyPercent" | "mediumPercent" | "hardPercent", value: number) => {
+    setValue(field, value);
+    // Clear overall difficulty selection when manually adjusting sliders
+    setSelectedDifficulty("");
+    setValue("difficulty", undefined);
+  };
+
   const onSubmit = async (data: FormDataType) => {
     if (totalPercent !== 100) {
       toast.error("Difficulty percentages must add up to 100%");
@@ -105,9 +139,11 @@ export function CreateTestPage() {
       // Reset form after successful creation
       setSelectedChapters([]);
       setChapters([]);
+      setSelectedDifficulty("");
       setValue("easyPercent", 0);
       setValue("mediumPercent", 0);
       setValue("hardPercent", 0);
+      setValue("difficulty", undefined);
 
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to create test");
@@ -247,18 +283,16 @@ export function CreateTestPage() {
             </CardContent>
           </Card>
 
-          {/* Test Configuration */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            {/* Exam Details */}
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-purple-600" />
-                  Test Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+          {/* Exam Type and Teacher ID */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-600" />
+                Test Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="examType" className="text-sm font-medium">
                     Exam Type *
@@ -289,103 +323,150 @@ export function CreateTestPage() {
                     className="mt-1 bg-gray-50"
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                <div>
-                  <Label className="text-sm font-medium">Overall Difficulty</Label>
-                  <RadioGroup
-                    onValueChange={(val) => setValue("difficulty", val as "easy" | "medium" | "hard")}
-                    className="flex flex-col space-y-2 mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="easy" id="difficulty-easy" />
-                      <label htmlFor="difficulty-easy" className="text-sm cursor-pointer">Easy</label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="medium" id="difficulty-medium" />
-                      <label htmlFor="difficulty-medium" className="text-sm cursor-pointer">Medium</label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="hard" id="difficulty-hard" />
-                      <label htmlFor="difficulty-hard" className="text-sm cursor-pointer">Hard</label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </CardContent>
-            </Card>
+          {/* Combined Difficulty Settings */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-orange-600" />
+                Difficulty Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
 
-            {/* Difficulty Distribution */}
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sliders className="w-5 h-5 text-orange-600" />
-                  Difficulty Distribution
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <Label className="text-sm font-medium">Easy Questions</Label>
-                    <Badge variant="outline">{watch("easyPercent")}%</Badge>
+              {/* Overall Difficulty Selection */}
+              <div>
+                <Label className="text-sm font-medium mb-3 block">
+                  Quick Difficulty Preset
+                  {selectedDifficulty && (
+                    <Badge variant="outline" className="ml-2">
+                      {selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)} Selected
+                    </Badge>
+                  )}
+                </Label>
+                <RadioGroup
+                  value={selectedDifficulty}
+                  onValueChange={handleOverallDifficultyChange}
+                  className="flex flex-row space-x-6"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="easy" id="difficulty-easy" />
+                    <label htmlFor="difficulty-easy" className="text-sm cursor-pointer">
+                      Easy <span className="text-xs text-gray-500">(70-25-5%)</span>
+                    </label>
                   </div>
-                  <Controller
-                    control={control}
-                    name="easyPercent"
-                    render={({ field }) => (
-                      <Slider
-                        min={0}
-                        max={100}
-                        step={5}
-                        value={[field.value]}
-                        onValueChange={(val) => field.onChange(val[0])}
-                        className="w-full"
-                      />
-                    )}
-                  />
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <Label className="text-sm font-medium">Medium Questions</Label>
-                    <Badge variant="outline">{watch("mediumPercent")}%</Badge>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="medium" id="difficulty-medium" />
+                    <label htmlFor="difficulty-medium" className="text-sm cursor-pointer">
+                      Medium <span className="text-xs text-gray-500">(30-50-20%)</span>
+                    </label>
                   </div>
-                  <Controller
-                    control={control}
-                    name="mediumPercent"
-                    render={({ field }) => (
-                      <Slider
-                        min={0}
-                        max={100}
-                        step={5}
-                        value={[field.value]}
-                        onValueChange={(val) => field.onChange(val[0])}
-                        className="w-full"
-                      />
-                    )}
-                  />
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <Label className="text-sm font-medium">Hard Questions</Label>
-                    <Badge variant="outline">{watch("hardPercent")}%</Badge>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="hard" id="difficulty-hard" />
+                    <label htmlFor="difficulty-hard" className="text-sm cursor-pointer">
+                      Hard <span className="text-xs text-gray-500">(15-35-50%)</span>
+                    </label>
                   </div>
-                  <Controller
-                    control={control}
-                    name="hardPercent"
-                    render={({ field }) => (
-                      <Slider
-                        min={0}
-                        max={100}
-                        step={5}
-                        value={[field.value]}
-                        onValueChange={(val) => field.onChange(val[0])}
-                        className="w-full"
-                      />
-                    )}
-                  />
+                </RadioGroup>
+                <p className="text-xs text-gray-500 mt-2">
+                  Select a preset to automatically set the difficulty percentages, or manually adjust sliders below.
+                </p>
+              </div>
+
+              {/* Separator with OR */}
+              <div className="relative">
+                <Separator />
+                <div className="absolute inset-0 flex justify-center">
+                  <span className="bg-white px-4 text-sm text-gray-500 font-medium">OR</span>
+                </div>
+              </div>
+
+              {/* Difficulty Distribution */}
+              <div className="space-y-6">
+                <Label className="text-sm font-medium">
+                  Custom Difficulty Distribution
+                  {!selectedDifficulty && totalPercent > 0 && (
+                    <Badge variant="outline" className="ml-2">
+                      Custom Settings Active
+                    </Badge>
+                  )}
+                </Label>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-sm font-medium text-green-600">Easy Questions</Label>
+                      <Badge variant="outline" className="border-green-600 text-green-600">
+                        {watch("easyPercent")}%
+                      </Badge>
+                    </div>
+                    <Controller
+                      control={control}
+                      name="easyPercent"
+                      render={({ field }) => (
+                        <Slider
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={[field.value]}
+                          onValueChange={(val) => handleSliderChange("easyPercent", val[0])}
+                          className="w-full"
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-sm font-medium text-yellow-600">Medium Questions</Label>
+                      <Badge variant="outline" className="border-yellow-600 text-yellow-600">
+                        {watch("mediumPercent")}%
+                      </Badge>
+                    </div>
+                    <Controller
+                      control={control}
+                      name="mediumPercent"
+                      render={({ field }) => (
+                        <Slider
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={[field.value]}
+                          onValueChange={(val) => handleSliderChange("mediumPercent", val[0])}
+                          className="w-full"
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <Label className="text-sm font-medium text-red-600">Hard Questions</Label>
+                      <Badge variant="outline" className="border-red-600 text-red-600">
+                        {watch("hardPercent")}%
+                      </Badge>
+                    </div>
+                    <Controller
+                      control={control}
+                      name="hardPercent"
+                      render={({ field }) => (
+                        <Slider
+                          min={0}
+                          max={100}
+                          step={5}
+                          value={[field.value]}
+                          onValueChange={(val) => handleSliderChange("hardPercent", val[0])}
+                          className="w-full"
+                        />
+                      )}
+                    />
+                  </div>
                 </div>
 
-                <div className="pt-4 border-t">
+                <div className="pt-4 border-t bg-gray-50 p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Total Percentage</span>
                     <Badge
@@ -401,9 +482,9 @@ export function CreateTestPage() {
                     </p>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Submit Button */}
           <Card className="shadow-lg">
