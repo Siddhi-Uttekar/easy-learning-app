@@ -65,6 +65,7 @@ export function CreateTestPage() {
     fetchCourses();
   }, []);
 
+//for chapters selection!!
   const handleCourseChange = async (id: string) => {
     setValue("courseId", Number(id));
     setChapters([]);
@@ -81,7 +82,7 @@ export function CreateTestPage() {
       setChaptersLoading(false);
     }
   };
-
+//
   const onSubmit = async (data: FormDataType) => {
     if (totalPercent !== 100) {
       toast.error("Difficulty percentages must add up to 100%");
