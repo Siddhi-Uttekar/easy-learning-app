@@ -88,7 +88,7 @@ const data = {
     },
     {
       title: "Create Course",
-      url: "/create-course",
+      url: "/Dashboard/create-course",
       icon: IconPlus,
       items: [
         {
