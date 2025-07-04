@@ -15,21 +15,31 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, BookOpen, Users, FileText, Sliders } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "@tanstack/react-router"; // Add this import
+import { Checkbox } from "@/components/ui/checkbox"; // Add this import
 
 const formSchema = z.object({
   courseId: z.number(),
   chapterIds: z.array(z.number()).min(1, "Select at least one chapter"),
   examTypeId: z.number(),
   teacherId: z.number(),
-  difficulty: z.enum(["easy", "medium", "hard"]).optional(),
+  numberOfQuestions: z.number().min(1, "Must have at least 1 question").max(50, "Maximum 50 questions allowed"),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  totalMarks: z.number().min(1, "Total marks must be at least 1"),
+  passingMarks: z.number().min(1, "Passing marks must be at least 1"),
+  timeLimit: z.number().min(1, "Time limit must be at least 1 minute"),
+  difficulty: z.enum(["EASY", "MEDIUM", "HARD"]).optional(),
   easyPercent: z.number().min(0).max(100),
   mediumPercent: z.number().min(0).max(100),
   hardPercent: z.number().min(0).max(100),
+  publishImmediately: z.boolean().optional(), // Add this field
 });
 
 export type FormDataType = z.infer<typeof formSchema>;
 
 export function CreateTestPage() {
+  const navigate = useNavigate(); // Add navigation hook
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState<any[]>([]);
   const [chapters, setChapters] = useState<any[]>([]);
@@ -38,13 +48,18 @@ export function CreateTestPage() {
   const [coursesLoading, setCoursesLoading] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("");
 
-  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm<FormDataType>({
+  const { register, handleSubmit, control, setValue, watch, formState: { errors }, reset } = useForm<FormDataType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       easyPercent: 0,
       mediumPercent: 0,
       hardPercent: 0,
       teacherId: 123,
+      numberOfQuestions: 20,
+      totalMarks: 20,
+      passingMarks: 7,
+      timeLimit: 30,
+      publishImmediately: false,
     },
   });
 
@@ -87,21 +102,21 @@ export function CreateTestPage() {
   // Handle overall difficulty selection
   const handleOverallDifficultyChange = (difficulty: string) => {
     setSelectedDifficulty(difficulty);
-    setValue("difficulty", difficulty as "easy" | "medium" | "hard");
+    setValue("difficulty", difficulty as "EASY" | "MEDIUM" | "HARD");
 
     // Set predefined percentages based on difficulty
     switch (difficulty) {
-      case "easy":
+      case "EASY":
         setValue("easyPercent", 70);
         setValue("mediumPercent", 25);
         setValue("hardPercent", 5);
         break;
-      case "medium":
+      case "MEDIUM":
         setValue("easyPercent", 30);
         setValue("mediumPercent", 50);
         setValue("hardPercent", 20);
         break;
-      case "hard":
+      case "HARD":
         setValue("easyPercent", 15);
         setValue("mediumPercent", 35);
         setValue("hardPercent", 50);
@@ -130,20 +145,51 @@ export function CreateTestPage() {
 
     setLoading(true);
     try {
-      await TestService.createTest({
-        ...data,
-        chapterIds: selectedChapters
-      });
-      toast.success("Test created successfully!");
+      // Create the test data object according to API specification
+      const testData = {
+        courseId: data.courseId,
+        chapterIds: selectedChapters,
+        examTypeId: data.examTypeId,
+        teacherId: data.teacherId,
+        numberOfQuestions: data.numberOfQuestions,
+        title: data.title,
+        description: data.description,
+        totalMarks: data.totalMarks,
+        passingMarks: data.passingMarks,
+        timeLimit: data.timeLimit,
+        difficulty: data.difficulty,
+        difficultyDistribution: {
+          EASY: data.easyPercent,
+          MEDIUM: data.mediumPercent,
+          HARD: data.hardPercent
+        }
+      };
+
+      // Create the test
+      const response = await TestService.createTest(testData);
+      const testId = response.testId;
+
+      // If user chose to publish immediately, publish the test
+      if (data.publishImmediately && testId) {
+        try {
+          await TestService.publishTest(testId, data.teacherId);
+          toast.success("Test created and published successfully!");
+        } catch (publishError) {
+          toast.success("Test created successfully, but failed to publish automatically");
+          console.error("Error publishing test:", publishError);
+        }
+      } else {
+        toast.success("Test created successfully!");
+      }
 
       // Reset form after successful creation
+      reset();
       setSelectedChapters([]);
       setChapters([]);
       setSelectedDifficulty("");
-      setValue("easyPercent", 0);
-      setValue("mediumPercent", 0);
-      setValue("hardPercent", 0);
-      setValue("difficulty", undefined);
+
+      // Navigate to dashboard page (update to a valid route)
+      navigate({ to: '/Dashboard' });
 
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to create test");
@@ -162,6 +208,113 @@ export function CreateTestPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+
+          {/* Test Information */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                Test Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="title" className="text-sm font-medium">
+                    Test Title *
+                  </Label>
+                  <Input
+                    id="title"
+                    {...register("title")}
+                    placeholder="Enter test title"
+                    className="mt-1"
+                  />
+                  {errors.title && (
+                    <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="numberOfQuestions" className="text-sm font-medium">
+                    Number of Questions *
+                  </Label>
+                  <Input
+                    id="numberOfQuestions"
+                    type="number"
+                    {...register("numberOfQuestions", { valueAsNumber: true })}
+                    min="1"
+                    max="50"
+                    className="mt-1"
+                  />
+                  {errors.numberOfQuestions && (
+                    <p className="text-red-500 text-sm mt-1">{errors.numberOfQuestions.message}</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="description" className="text-sm font-medium">
+                  Description
+                </Label>
+                <Input
+                  id="description"
+                  {...register("description")}
+                  placeholder="Enter test description (optional)"
+                  className="mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="totalMarks" className="text-sm font-medium">
+                    Total Marks *
+                  </Label>
+                  <Input
+                    id="totalMarks"
+                    type="number"
+                    {...register("totalMarks", { valueAsNumber: true })}
+                    min="1"
+                    className="mt-1"
+                  />
+                  {errors.totalMarks && (
+                    <p className="text-red-500 text-sm mt-1">{errors.totalMarks.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="passingMarks" className="text-sm font-medium">
+                    Passing Marks *
+                  </Label>
+                  <Input
+                    id="passingMarks"
+                    type="number"
+                    {...register("passingMarks", { valueAsNumber: true })}
+                    min="1"
+                    className="mt-1"
+                  />
+                  {errors.passingMarks && (
+                    <p className="text-red-500 text-sm mt-1">{errors.passingMarks.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Label htmlFor="timeLimit" className="text-sm font-medium">
+                    Time Limit (minutes) *
+                  </Label>
+                  <Input
+                    id="timeLimit"
+                    type="number"
+                    {...register("timeLimit", { valueAsNumber: true })}
+                    min="1"
+                    className="mt-1"
+                  />
+                  {errors.timeLimit && (
+                    <p className="text-red-500 text-sm mt-1">{errors.timeLimit.message}</p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Course Selection */}
           <Card className="shadow-lg">
@@ -353,19 +506,19 @@ export function CreateTestPage() {
                   className="flex flex-row space-x-6"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="easy" id="difficulty-easy" />
+                    <RadioGroupItem value="EASY" id="difficulty-easy" />
                     <label htmlFor="difficulty-easy" className="text-sm cursor-pointer">
                       Easy <span className="text-xs text-gray-500">(70-25-5%)</span>
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="medium" id="difficulty-medium" />
+                    <RadioGroupItem value="MEDIUM" id="difficulty-medium" />
                     <label htmlFor="difficulty-medium" className="text-sm cursor-pointer">
                       Medium <span className="text-xs text-gray-500">(30-50-20%)</span>
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="hard" id="difficulty-hard" />
+                    <RadioGroupItem value="HARD" id="difficulty-hard" />
                     <label htmlFor="difficulty-hard" className="text-sm cursor-pointer">
                       Hard <span className="text-xs text-gray-500">(15-35-50%)</span>
                     </label>
@@ -483,6 +636,37 @@ export function CreateTestPage() {
                   )}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Publishing Options */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                Publishing Options
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-2">
+                <Controller
+                  control={control}
+                  name="publishImmediately"
+                  render={({ field }) => (
+                    <Checkbox
+                      id="publishImmediately"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
+                />
+                <Label htmlFor="publishImmediately" className="text-sm font-medium">
+                  Publish test immediately after creation
+                </Label>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                If unchecked, the test will be saved as a draft and can be published later from the tests management page.
+              </p>
             </CardContent>
           </Card>
 
