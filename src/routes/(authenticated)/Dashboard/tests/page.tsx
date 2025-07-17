@@ -229,6 +229,8 @@ export function TestsPage() {
     );
   }
 
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto">
@@ -541,41 +543,55 @@ export function TestsPage() {
 
                   {/* Action Buttons */}
                   <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        navigate({ to: `/Dashboard/tests/${test.id}` })
-                      }
-                      className="flex-1"
-                    >
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
-                    <Button
-                      variant={test.isPublished ? "secondary" : "default"}
-                      size="sm"
-                      onClick={() =>
-                        handlePublishToggle(test.id, test.isPublished)
-                      }
-                      disabled={actionLoading === test.id}
-                      className="flex-1"
-                    >
-                      {actionLoading === test.id ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : test.isPublished ? (
-                        <>
-                          <Pause className="w-4 h-4 mr-1" />
-                          Unpublish
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-4 h-4 mr-1" />
-                          Publish
-                        </>
-                      )}
-                    </Button>
-                  </div>
+                 {authService.isAdmin() ? (
+          <>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() =>
+              navigate({ to: `/Dashboard/tests/${test.id}` })
+            }
+            className="flex-1"
+          >
+            <Eye className="w-4 h-4 mr-1" />
+            View
+          </Button>
+          <Button
+            variant={test.isPublished ? "secondary" : "default"}
+            size="sm"
+            onClick={() =>
+              handlePublishToggle(test.id, test.isPublished)
+            }
+            disabled={actionLoading === test.id}
+            className="flex-1"
+          >
+            {actionLoading === test.id ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : test.isPublished ? (
+              <>
+                <Pause className="w-4 h-4 mr-1" />
+                Unpublish
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 mr-1" />
+                Publish
+              </>
+            )}
+          </Button>
+        </>
+      ) : (
+        <Button
+          variant="default"
+          size="sm"
+          // onClick={handleAttempt}
+          className="w-full"
+        >
+          <Play className="w-4 h-4 mr-1" />
+          Attempt Test
+        </Button>
+      )}
+    </div>
                 </CardContent>
               </Card>
             ))}
