@@ -72,6 +72,22 @@ class AuthService {
       throw error;
     }
   }
+
+  getUserFromToken() {
+  const token = store.getState().auth.accessToken || localStorage.getItem("accessToken");
+  if (!token) return null;
+  try {
+    const decoded: any = jwtDecode(token);
+    return {
+      id: decoded.sub, // Use sub as id!
+      role: decoded.role,
+      email: decoded.email,
+    };
+  } catch (error) {
+    console.error("Invalid token:", error);
+    return null;
+  }
+}
 }
 
 export const authService = new AuthService();

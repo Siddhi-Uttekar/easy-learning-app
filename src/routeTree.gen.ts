@@ -22,7 +22,10 @@ import { Route as authenticatedDashboardCreateCourseRouteRouteImport } from './r
 import { Route as authenticatedDashboardCoursesRouteRouteImport } from './routes/(authenticated)/Dashboard/courses/route'
 import { Route as authenticatedDashboardTestsIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/index'
 import { Route as authenticatedDashboardTestsCreateRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/create/route'
-import { Route as authenticatedDashboardTestsTestIdRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/route'
+import { Route as authenticatedDashboardTestsTestIdIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/index'
+import { Route as authenticatedDashboardTestsAttemptsAttemptIdRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/attempts/$attemptId/route'
+import { Route as authenticatedDashboardTestsTestIdStartRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/start/route'
+import { Route as authenticatedDashboardTestsAttemptsAttemptIdPageRouteImport } from './routes/(authenticated)/Dashboard/tests/attempts/$attemptId/page'
 
 const authenticatedRouteRoute = authenticatedRouteRouteImport.update({
   id: '/(authenticated)',
@@ -94,11 +97,30 @@ const authenticatedDashboardTestsCreateRouteRoute =
     path: '/tests/create',
     getParentRoute: () => authenticatedDashboardRouteRoute,
   } as any)
-const authenticatedDashboardTestsTestIdRouteRoute =
-  authenticatedDashboardTestsTestIdRouteRouteImport.update({
-    id: '/tests/$testId',
-    path: '/tests/$testId',
+const authenticatedDashboardTestsTestIdIndexRoute =
+  authenticatedDashboardTestsTestIdIndexRouteImport.update({
+    id: '/tests/$testId/',
+    path: '/tests/$testId/',
     getParentRoute: () => authenticatedDashboardRouteRoute,
+  } as any)
+const authenticatedDashboardTestsAttemptsAttemptIdRouteRoute =
+  authenticatedDashboardTestsAttemptsAttemptIdRouteRouteImport.update({
+    id: '/tests/attempts/$attemptId',
+    path: '/tests/attempts/$attemptId',
+    getParentRoute: () => authenticatedDashboardRouteRoute,
+  } as any)
+const authenticatedDashboardTestsTestIdStartRouteRoute =
+  authenticatedDashboardTestsTestIdStartRouteRouteImport.update({
+    id: '/tests/$testId/start',
+    path: '/tests/$testId/start',
+    getParentRoute: () => authenticatedDashboardRouteRoute,
+  } as any)
+const authenticatedDashboardTestsAttemptsAttemptIdPageRoute =
+  authenticatedDashboardTestsAttemptsAttemptIdPageRouteImport.update({
+    id: '/page',
+    path: '/page',
+    getParentRoute: () =>
+      authenticatedDashboardTestsAttemptsAttemptIdRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -111,9 +133,12 @@ export interface FileRoutesByFullPath {
   '/Dashboard/create-course': typeof authenticatedDashboardCreateCourseRouteRoute
   '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
   '/Dashboard/': typeof authenticatedDashboardIndexRoute
-  '/Dashboard/tests/$testId': typeof authenticatedDashboardTestsTestIdRouteRoute
   '/Dashboard/tests/create': typeof authenticatedDashboardTestsCreateRouteRoute
   '/Dashboard/tests': typeof authenticatedDashboardTestsIndexRoute
+  '/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
+  '/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRouteWithChildren
+  '/Dashboard/tests/$testId': typeof authenticatedDashboardTestsTestIdIndexRoute
+  '/Dashboard/tests/attempts/$attemptId/page': typeof authenticatedDashboardTestsAttemptsAttemptIdPageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof authenticatedRouteRouteWithChildren
@@ -124,9 +149,12 @@ export interface FileRoutesByTo {
   '/Dashboard/create-course': typeof authenticatedDashboardCreateCourseRouteRoute
   '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
   '/Dashboard': typeof authenticatedDashboardIndexRoute
-  '/Dashboard/tests/$testId': typeof authenticatedDashboardTestsTestIdRouteRoute
   '/Dashboard/tests/create': typeof authenticatedDashboardTestsCreateRouteRoute
   '/Dashboard/tests': typeof authenticatedDashboardTestsIndexRoute
+  '/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
+  '/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRouteWithChildren
+  '/Dashboard/tests/$testId': typeof authenticatedDashboardTestsTestIdIndexRoute
+  '/Dashboard/tests/attempts/$attemptId/page': typeof authenticatedDashboardTestsAttemptsAttemptIdPageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -141,9 +169,12 @@ export interface FileRoutesById {
   '/(authenticated)/Dashboard/create-course': typeof authenticatedDashboardCreateCourseRouteRoute
   '/(authenticated)/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
   '/(authenticated)/Dashboard/': typeof authenticatedDashboardIndexRoute
-  '/(authenticated)/Dashboard/tests/$testId': typeof authenticatedDashboardTestsTestIdRouteRoute
   '/(authenticated)/Dashboard/tests/create': typeof authenticatedDashboardTestsCreateRouteRoute
   '/(authenticated)/Dashboard/tests/': typeof authenticatedDashboardTestsIndexRoute
+  '/(authenticated)/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
+  '/(authenticated)/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRouteWithChildren
+  '/(authenticated)/Dashboard/tests/$testId/': typeof authenticatedDashboardTestsTestIdIndexRoute
+  '/(authenticated)/Dashboard/tests/attempts/$attemptId/page': typeof authenticatedDashboardTestsAttemptsAttemptIdPageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,9 +188,12 @@ export interface FileRouteTypes {
     | '/Dashboard/create-course'
     | '/Dashboard/settings'
     | '/Dashboard/'
-    | '/Dashboard/tests/$testId'
     | '/Dashboard/tests/create'
     | '/Dashboard/tests'
+    | '/Dashboard/tests/$testId/start'
+    | '/Dashboard/tests/attempts/$attemptId'
+    | '/Dashboard/tests/$testId'
+    | '/Dashboard/tests/attempts/$attemptId/page'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -170,9 +204,12 @@ export interface FileRouteTypes {
     | '/Dashboard/create-course'
     | '/Dashboard/settings'
     | '/Dashboard'
-    | '/Dashboard/tests/$testId'
     | '/Dashboard/tests/create'
     | '/Dashboard/tests'
+    | '/Dashboard/tests/$testId/start'
+    | '/Dashboard/tests/attempts/$attemptId'
+    | '/Dashboard/tests/$testId'
+    | '/Dashboard/tests/attempts/$attemptId/page'
   id:
     | '__root__'
     | '/'
@@ -186,9 +223,12 @@ export interface FileRouteTypes {
     | '/(authenticated)/Dashboard/create-course'
     | '/(authenticated)/Dashboard/settings'
     | '/(authenticated)/Dashboard/'
-    | '/(authenticated)/Dashboard/tests/$testId'
     | '/(authenticated)/Dashboard/tests/create'
     | '/(authenticated)/Dashboard/tests/'
+    | '/(authenticated)/Dashboard/tests/$testId/start'
+    | '/(authenticated)/Dashboard/tests/attempts/$attemptId'
+    | '/(authenticated)/Dashboard/tests/$testId/'
+    | '/(authenticated)/Dashboard/tests/attempts/$attemptId/page'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -290,12 +330,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedDashboardTestsCreateRouteRouteImport
       parentRoute: typeof authenticatedDashboardRouteRoute
     }
-    '/(authenticated)/Dashboard/tests/$testId': {
-      id: '/(authenticated)/Dashboard/tests/$testId'
+    '/(authenticated)/Dashboard/tests/$testId/': {
+      id: '/(authenticated)/Dashboard/tests/$testId/'
       path: '/tests/$testId'
       fullPath: '/Dashboard/tests/$testId'
-      preLoaderRoute: typeof authenticatedDashboardTestsTestIdRouteRouteImport
+      preLoaderRoute: typeof authenticatedDashboardTestsTestIdIndexRouteImport
       parentRoute: typeof authenticatedDashboardRouteRoute
+    }
+    '/(authenticated)/Dashboard/tests/attempts/$attemptId': {
+      id: '/(authenticated)/Dashboard/tests/attempts/$attemptId'
+      path: '/tests/attempts/$attemptId'
+      fullPath: '/Dashboard/tests/attempts/$attemptId'
+      preLoaderRoute: typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRouteImport
+      parentRoute: typeof authenticatedDashboardRouteRoute
+    }
+    '/(authenticated)/Dashboard/tests/$testId/start': {
+      id: '/(authenticated)/Dashboard/tests/$testId/start'
+      path: '/tests/$testId/start'
+      fullPath: '/Dashboard/tests/$testId/start'
+      preLoaderRoute: typeof authenticatedDashboardTestsTestIdStartRouteRouteImport
+      parentRoute: typeof authenticatedDashboardRouteRoute
+    }
+    '/(authenticated)/Dashboard/tests/attempts/$attemptId/page': {
+      id: '/(authenticated)/Dashboard/tests/attempts/$attemptId/page'
+      path: '/page'
+      fullPath: '/Dashboard/tests/attempts/$attemptId/page'
+      preLoaderRoute: typeof authenticatedDashboardTestsAttemptsAttemptIdPageRouteImport
+      parentRoute: typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
     }
   }
 }
@@ -314,14 +375,31 @@ const authRouteRouteWithChildren = authRouteRoute._addFileChildren(
   authRouteRouteChildren,
 )
 
+interface authenticatedDashboardTestsAttemptsAttemptIdRouteRouteChildren {
+  authenticatedDashboardTestsAttemptsAttemptIdPageRoute: typeof authenticatedDashboardTestsAttemptsAttemptIdPageRoute
+}
+
+const authenticatedDashboardTestsAttemptsAttemptIdRouteRouteChildren: authenticatedDashboardTestsAttemptsAttemptIdRouteRouteChildren =
+  {
+    authenticatedDashboardTestsAttemptsAttemptIdPageRoute:
+      authenticatedDashboardTestsAttemptsAttemptIdPageRoute,
+  }
+
+const authenticatedDashboardTestsAttemptsAttemptIdRouteRouteWithChildren =
+  authenticatedDashboardTestsAttemptsAttemptIdRouteRoute._addFileChildren(
+    authenticatedDashboardTestsAttemptsAttemptIdRouteRouteChildren,
+  )
+
 interface authenticatedDashboardRouteRouteChildren {
   authenticatedDashboardCoursesRouteRoute: typeof authenticatedDashboardCoursesRouteRoute
   authenticatedDashboardCreateCourseRouteRoute: typeof authenticatedDashboardCreateCourseRouteRoute
   authenticatedDashboardSettingsRoute: typeof authenticatedDashboardSettingsRoute
   authenticatedDashboardIndexRoute: typeof authenticatedDashboardIndexRoute
-  authenticatedDashboardTestsTestIdRouteRoute: typeof authenticatedDashboardTestsTestIdRouteRoute
   authenticatedDashboardTestsCreateRouteRoute: typeof authenticatedDashboardTestsCreateRouteRoute
   authenticatedDashboardTestsIndexRoute: typeof authenticatedDashboardTestsIndexRoute
+  authenticatedDashboardTestsTestIdStartRouteRoute: typeof authenticatedDashboardTestsTestIdStartRouteRoute
+  authenticatedDashboardTestsAttemptsAttemptIdRouteRoute: typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRouteWithChildren
+  authenticatedDashboardTestsTestIdIndexRoute: typeof authenticatedDashboardTestsTestIdIndexRoute
 }
 
 const authenticatedDashboardRouteRouteChildren: authenticatedDashboardRouteRouteChildren =
@@ -332,12 +410,16 @@ const authenticatedDashboardRouteRouteChildren: authenticatedDashboardRouteRoute
       authenticatedDashboardCreateCourseRouteRoute,
     authenticatedDashboardSettingsRoute: authenticatedDashboardSettingsRoute,
     authenticatedDashboardIndexRoute: authenticatedDashboardIndexRoute,
-    authenticatedDashboardTestsTestIdRouteRoute:
-      authenticatedDashboardTestsTestIdRouteRoute,
     authenticatedDashboardTestsCreateRouteRoute:
       authenticatedDashboardTestsCreateRouteRoute,
     authenticatedDashboardTestsIndexRoute:
       authenticatedDashboardTestsIndexRoute,
+    authenticatedDashboardTestsTestIdStartRouteRoute:
+      authenticatedDashboardTestsTestIdStartRouteRoute,
+    authenticatedDashboardTestsAttemptsAttemptIdRouteRoute:
+      authenticatedDashboardTestsAttemptsAttemptIdRouteRouteWithChildren,
+    authenticatedDashboardTestsTestIdIndexRoute:
+      authenticatedDashboardTestsTestIdIndexRoute,
   }
 
 const authenticatedDashboardRouteRouteWithChildren =

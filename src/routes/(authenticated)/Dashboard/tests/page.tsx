@@ -584,7 +584,7 @@ export function TestsPage() {
         <Button
           variant="default"
           size="sm"
-          // onClick={handleAttempt}
+          onClick={() => navigate({ to: `/Dashboard/tests/${test.id}/start` })}
           className="w-full"
         >
           <Play className="w-4 h-4 mr-1" />

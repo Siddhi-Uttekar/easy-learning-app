@@ -1,4 +1,4 @@
-import { Route } from './route'
+import { Route } from '.'
 import { MathJaxContext, MathJax } from 'better-react-mathjax'
 
 export default function Page() {
@@ -82,4 +82,3 @@ function QuestionCard({ question, index }: { question: any, index: number }) {
     </div>
   )
 }
-
