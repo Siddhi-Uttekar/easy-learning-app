@@ -105,7 +105,7 @@ const data = {
   navTests: [
     {
       title: "Tests",
-      url: "/tests",
+      url: "/Dashboard/tests",
       icon: IconClipboard,
       isActive: false,
       items: [
@@ -131,6 +131,18 @@ const data = {
         {
           title: "Test Templates",
           url: "/tests/create/templates",
+        },
+      ],
+    },
+    {
+      title: "Create Subjective Test",
+      url: "/Dashboard/tests/create-subjective",
+      icon: IconFileDescription,
+      items: [
+        { title: "New Subjective Test", url: "/tests/create-subjective" },
+        {
+          title: "Subjective Test Templates",
+          url: "/tests/create-subjective/templates",
         },
       ],
     },
@@ -191,10 +203,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} title={data.navMain[0].title} />
+        {/* <NavMain items={data.navMain} title={data.navMain[0].title} /> */}
         <NavMain items={data.navCourses} title={data.navCourses[0].title} />
         <NavMain items={data.navTests} title={data.navTests[0].title} />
-        <NavDocuments items={data.documents} />
+        {/* <NavDocuments items={data.documents} /> */}
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

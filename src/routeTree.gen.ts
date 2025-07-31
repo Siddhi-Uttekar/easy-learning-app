@@ -22,6 +22,7 @@ import { Route as authenticatedDashboardCreateCourseRouteRouteImport } from './r
 import { Route as authenticatedDashboardCoursesRouteRouteImport } from './routes/(authenticated)/Dashboard/courses/route'
 import { Route as authenticatedDashboardTestsIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/index'
 import { Route as authenticatedDashboardTestsCreateRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/create/route'
+import { Route as authenticatedDashboardTestsCreateSubjectiveIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/create-subjective/index'
 import { Route as authenticatedDashboardTestsTestIdIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/index'
 import { Route as authenticatedDashboardTestsAttemptsAttemptIdRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/attempts/$attemptId/route'
 import { Route as authenticatedDashboardTestsTestIdStartRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/start/route'
@@ -96,6 +97,12 @@ const authenticatedDashboardTestsCreateRouteRoute =
     path: '/tests/create',
     getParentRoute: () => authenticatedDashboardRouteRoute,
   } as any)
+const authenticatedDashboardTestsCreateSubjectiveIndexRoute =
+  authenticatedDashboardTestsCreateSubjectiveIndexRouteImport.update({
+    id: '/tests/create-subjective/',
+    path: '/tests/create-subjective/',
+    getParentRoute: () => authenticatedDashboardRouteRoute,
+  } as any)
 const authenticatedDashboardTestsTestIdIndexRoute =
   authenticatedDashboardTestsTestIdIndexRouteImport.update({
     id: '/tests/$testId/',
@@ -130,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
   '/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
   '/Dashboard/tests/$testId': typeof authenticatedDashboardTestsTestIdIndexRoute
+  '/Dashboard/tests/create-subjective': typeof authenticatedDashboardTestsCreateSubjectiveIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof authenticatedRouteRouteWithChildren
@@ -145,6 +153,7 @@ export interface FileRoutesByTo {
   '/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
   '/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
   '/Dashboard/tests/$testId': typeof authenticatedDashboardTestsTestIdIndexRoute
+  '/Dashboard/tests/create-subjective': typeof authenticatedDashboardTestsCreateSubjectiveIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -164,6 +173,7 @@ export interface FileRoutesById {
   '/(authenticated)/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
   '/(authenticated)/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
   '/(authenticated)/Dashboard/tests/$testId/': typeof authenticatedDashboardTestsTestIdIndexRoute
+  '/(authenticated)/Dashboard/tests/create-subjective/': typeof authenticatedDashboardTestsCreateSubjectiveIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/Dashboard/tests/$testId/start'
     | '/Dashboard/tests/attempts/$attemptId'
     | '/Dashboard/tests/$testId'
+    | '/Dashboard/tests/create-subjective'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -197,6 +208,7 @@ export interface FileRouteTypes {
     | '/Dashboard/tests/$testId/start'
     | '/Dashboard/tests/attempts/$attemptId'
     | '/Dashboard/tests/$testId'
+    | '/Dashboard/tests/create-subjective'
   id:
     | '__root__'
     | '/'
@@ -215,6 +227,7 @@ export interface FileRouteTypes {
     | '/(authenticated)/Dashboard/tests/$testId/start'
     | '/(authenticated)/Dashboard/tests/attempts/$attemptId'
     | '/(authenticated)/Dashboard/tests/$testId/'
+    | '/(authenticated)/Dashboard/tests/create-subjective/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -316,6 +329,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedDashboardTestsCreateRouteRouteImport
       parentRoute: typeof authenticatedDashboardRouteRoute
     }
+    '/(authenticated)/Dashboard/tests/create-subjective/': {
+      id: '/(authenticated)/Dashboard/tests/create-subjective/'
+      path: '/tests/create-subjective'
+      fullPath: '/Dashboard/tests/create-subjective'
+      preLoaderRoute: typeof authenticatedDashboardTestsCreateSubjectiveIndexRouteImport
+      parentRoute: typeof authenticatedDashboardRouteRoute
+    }
     '/(authenticated)/Dashboard/tests/$testId/': {
       id: '/(authenticated)/Dashboard/tests/$testId/'
       path: '/tests/$testId'
@@ -364,6 +384,7 @@ interface authenticatedDashboardRouteRouteChildren {
   authenticatedDashboardTestsTestIdStartRouteRoute: typeof authenticatedDashboardTestsTestIdStartRouteRoute
   authenticatedDashboardTestsAttemptsAttemptIdRouteRoute: typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
   authenticatedDashboardTestsTestIdIndexRoute: typeof authenticatedDashboardTestsTestIdIndexRoute
+  authenticatedDashboardTestsCreateSubjectiveIndexRoute: typeof authenticatedDashboardTestsCreateSubjectiveIndexRoute
 }
 
 const authenticatedDashboardRouteRouteChildren: authenticatedDashboardRouteRouteChildren =
@@ -384,6 +405,8 @@ const authenticatedDashboardRouteRouteChildren: authenticatedDashboardRouteRoute
       authenticatedDashboardTestsAttemptsAttemptIdRouteRoute,
     authenticatedDashboardTestsTestIdIndexRoute:
       authenticatedDashboardTestsTestIdIndexRoute,
+    authenticatedDashboardTestsCreateSubjectiveIndexRoute:
+      authenticatedDashboardTestsCreateSubjectiveIndexRoute,
   }
 
 const authenticatedDashboardRouteRouteWithChildren =

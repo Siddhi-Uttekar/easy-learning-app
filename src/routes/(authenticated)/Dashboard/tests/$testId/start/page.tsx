@@ -1,13 +1,15 @@
-import { useNavigate, useParams } from '@tanstack/react-router';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
-import api from '@/lib/axios';
-import { toast } from 'sonner';
-import { authService } from '@/service/authService';
+import { useNavigate, useParams } from "@tanstack/react-router";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
+import api from "@/lib/axios";
+import { toast } from "sonner";
+import { authService } from "@/service/authService";
 
 export default function StartTest() {
-  const { testId } = useParams({ from: '/(authenticated)/Dashboard/tests/$testId/start' });
+  const { testId } = useParams({
+    from: "/(authenticated)/Dashboard/tests/$testId/start",
+  });
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
@@ -17,7 +19,7 @@ export default function StartTest() {
     try {
       const user = authService.getUserFromToken();
       if (!user || !user.id) {
-        toast.error('User not found or invalid. Please re-login.');
+        toast.error("User not found or invalid. Please re-login.");
         setLoading(false);
         return;
       }
@@ -28,9 +30,9 @@ export default function StartTest() {
         // studentEmail: user.email,
       });
       const { attemptId } = res.data;
-      navigate({ to: `/Dashboard/tests/attempts/${attemptId}` });
+      navigate({ to: `/Dashboard/tests/attempts/${testId}` });
     } catch (e) {
-      toast.error('Could not start attempt');
+      toast.error("Could not start attempt");
     } finally {
       setLoading(false);
     }
