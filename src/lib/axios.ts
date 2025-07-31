@@ -3,7 +3,7 @@ import { store } from "../store/index";
 import { logout } from "../store/slices/authSlice";
 
 const api = axios.create({
-  baseURL: "http://localhost:4000/",
+  baseURL: "https://app.webfuze.in/",
 });
 
 api.interceptors.request.use((config) => {
