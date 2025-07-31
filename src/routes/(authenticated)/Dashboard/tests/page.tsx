@@ -505,7 +505,7 @@ export function TestsPage() {
                         Exam Type
                       </span>
                       <span className="font-medium">
-                        {test.examType.displayName}
+                        {test.examType ? test.examType.displayName : "N/A"}
                       </span>
                     </div>
 
