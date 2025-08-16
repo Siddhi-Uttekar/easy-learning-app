@@ -1,3 +1,5 @@
+"use client";
+import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { TestService } from "@/service/TestService";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -34,12 +36,19 @@ import {
   Filter,
   Check,
   X,
+  Settings,
+  Target,
+  Clock,
+  GraduationCap,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "@tanstack/react-router";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { authService } from "@/service/authService";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useUser } from "@/hooks/useUser";
+import { Textarea } from "@/components/ui/textarea";
+import { queryClient } from "@/lib/queryClient";
 
 interface Chapter {
   id: number;
@@ -50,6 +59,12 @@ interface Chapter {
   examTypeId: number;
   createdAt: string;
   updatedAt: string;
+}
+
+interface Course {
+  id: number;
+  name: string;
+  description?: string;
 }
 
 const formSchema = z.object({
@@ -77,19 +92,13 @@ export type FormDataType = z.infer<typeof formSchema>;
 
 export function CreateTestPage() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [courses, setCourses] = useState<any[]>([]);
-  const [chapters, setChapters] = useState<Chapter[]>([]);
   const [selectedChapters, setSelectedChapters] = useState<number[]>([]);
-  const [chaptersLoading, setChaptersLoading] = useState(false);
-  const [coursesLoading, setCoursesLoading] = useState(true);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("");
-
-  // Filter states
   const [selectedSubject, setSelectedSubject] = useState<string>("all");
   const [selectedStandard, setSelectedStandard] = useState<string>("all");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+
+  const { data: user, isLoading: userLoading } = useUser();
 
   const {
     register,
@@ -115,34 +124,82 @@ export function CreateTestPage() {
     },
   });
 
+  const {
+    data: courses = [],
+    isLoading: coursesLoading,
+    error: coursesError,
+  } = useQuery<Course[]>({
+    queryKey: ["courses"],
+    queryFn: TestService.getCourses,
+    retry: 1,
+  });
+
+  const { data: chapters = [], isLoading: chaptersLoading } = useQuery<
+    Chapter[]
+  >({
+    queryKey: ["chapters"],
+    queryFn: TestService.getChapters,
+    enabled: !!watch("courseId"),
+    retry: 1,
+  });
+
+  const createTestMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await TestService.createTest(data);
+      return response;
+    },
+    onSuccess: async (response, variables) => {
+      const testId = response.testId;
+
+      if (variables.publishImmediately && testId) {
+        try {
+          await TestService.publishTest(testId, variables.teacherId);
+          toast.success("Test created and published successfully!");
+        } catch (publishError) {
+          toast.success(
+            "Test created successfully, but failed to publish automatically"
+          );
+          console.error("Error publishing test:", publishError);
+        }
+      } else {
+        toast.success("Test created successfully!");
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["tests"] });
+      reset();
+      setSelectedChapters([]);
+      setSelectedDifficulty("");
+      setSelectedSubject("all");
+      setSelectedStandard("all");
+      navigate({ to: "/Dashboard/tests" });
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || "Failed to create test");
+      console.error("Error creating test:", err);
+    },
+  });
+
   const totalPercent =
     watch("easyPercent") + watch("mediumPercent") + watch("hardPercent");
-  const watchedChapterIds = watch("chapterIds");
 
-  // Update form value when selectedChapters changes
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await authService.getUser();
-        setUser(res);
-        setValue("teacherId", res.id);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
+  React.useEffect(() => {
+    if (user?.id) {
+      setValue("teacherId", Number(user.id));
+    }
+  }, [user, setValue]);
+
+  React.useEffect(() => {
     setValue("chapterIds", selectedChapters);
   }, [selectedChapters, setValue]);
 
-  // Get unique subjects and standards
   const uniqueSubjects = Array.from(
-    new Set(chapters.map((chapter) => chapter.subject))
+    new Set(chapters.map((chapter: Chapter) => chapter.subject))
   ).sort();
   const uniqueStandards = Array.from(
-    new Set(chapters.map((chapter) => chapter.standard))
+    new Set(chapters.map((chapter: Chapter) => chapter.standard))
   ).sort();
 
-  // Filter chapters based on selected filters
-  const filteredChapters = chapters.filter((chapter) => {
+  const filteredChapters = chapters.filter((chapter: Chapter) => {
     const subjectMatch =
       selectedSubject === "all" || chapter.subject === selectedSubject;
     const standardMatch =
@@ -150,68 +207,38 @@ export function CreateTestPage() {
     return subjectMatch && standardMatch;
   });
 
-  // Group chapters by subject and standard for better organization
-  const groupedChapters = filteredChapters.reduce((acc, chapter) => {
-    const key = `${chapter.subject} - Standard ${chapter.standard}`;
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(chapter);
-    return acc;
-  }, {} as Record<string, Chapter[]>);
-
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        setCoursesLoading(true);
-        const res = await TestService.getCourses();
-        setCourses(res);
-      } catch (error) {
-        toast.error("Failed to load courses");
-        console.error("Error fetching courses:", error);
-      } finally {
-        setCoursesLoading(false);
+  const groupedChapters = filteredChapters.reduce(
+    (acc: Record<string, Chapter[]>, chapter: Chapter) => {
+      const key = `${chapter.subject} - Standard ${chapter.standard}`;
+      if (!acc[key]) {
+        acc[key] = [];
       }
-    };
+      acc[key].push(chapter);
+      return acc;
+    },
+    {} as Record<string, Chapter[]>
+  );
 
-    fetchCourses();
-  }, []);
-
-  const handleCourseChange = async (id: string) => {
+  const handleCourseChange = (id: string) => {
     setValue("courseId", Number(id));
-    setChapters([]);
     setSelectedChapters([]);
     setValue("chapterIds", []);
-    setChaptersLoading(true);
-
-    try {
-      const res = await TestService.getChapters();
-      setChapters(res);
-    } catch (error) {
-      toast.error("Failed to load chapters");
-      console.error("Error fetching chapters:", error);
-    } finally {
-      setChaptersLoading(false);
-    }
   };
 
-  // Handle select all for current filtered chapters
   const handleSelectAllFiltered = () => {
-    const filteredIds = filteredChapters.map((chapter) => chapter.id);
-    const allSelected = filteredIds.every((id) =>
+    const filteredIds = filteredChapters.map((chapter: Chapter) => chapter.id);
+    const allSelected = filteredIds.every((id: number) =>
       selectedChapters.includes(id)
     );
 
     if (allSelected) {
-      // Deselect all filtered chapters
       setSelectedChapters((prev) =>
         prev.filter((id) => !filteredIds.includes(id))
       );
     } else {
-      // Select all filtered chapters
       setSelectedChapters((prev) => {
         const newSelection = [...prev];
-        filteredIds.forEach((id) => {
+        filteredIds.forEach((id: number) => {
           if (!newSelection.includes(id)) {
             newSelection.push(id);
           }
@@ -221,7 +248,6 @@ export function CreateTestPage() {
     }
   };
 
-  // Handle select all for a specific group
   const handleSelectGroup = (groupChapters: Chapter[]) => {
     const groupIds = groupChapters.map((chapter) => chapter.id);
     const allSelected = groupIds.every((id) => selectedChapters.includes(id));
@@ -286,109 +312,95 @@ export function CreateTestPage() {
       return;
     }
 
-    setLoading(true);
-    try {
-      const testData = {
-        courseId: data.courseId,
-        chapterIds: selectedChapters,
-        examTypeId: data.examTypeId,
-        teacherId: data.teacherId,
-        numberOfQuestions: data.numberOfQuestions,
-        title: data.title,
-        description: data.description,
-        totalMarks: data.totalMarks,
-        passingMarks: data.passingMarks,
-        timeLimit: data.timeLimit,
-        difficulty: data.difficulty,
-        difficultyDistribution: {
-          easy: data.easyPercent,
-          medium: data.mediumPercent,
-          hard: data.hardPercent,
-        },
-      };
+    const testData = {
+      courseId: data.courseId,
+      chapterIds: selectedChapters,
+      examTypeId: data.examTypeId,
+      teacherId: data.teacherId,
+      numberOfQuestions: data.numberOfQuestions,
+      title: data.title,
+      description: data.description,
+      totalMarks: data.totalMarks,
+      passingMarks: data.passingMarks,
+      timeLimit: data.timeLimit,
+      difficulty: data.difficulty,
+      difficultyDistribution: {
+        easy: data.easyPercent,
+        medium: data.mediumPercent,
+        hard: data.hardPercent,
+      },
+      publishImmediately: data.publishImmediately,
+    };
 
-      const response = await TestService.createTest(testData);
-      const testId = response.testId;
-
-      if (data.publishImmediately && testId) {
-        try {
-          await TestService.publishTest(testId, data.teacherId);
-          toast.success("Test created and published successfully!");
-        } catch (publishError) {
-          toast.success(
-            "Test created successfully, but failed to publish automatically"
-          );
-          console.error("Error publishing test:", publishError);
-        }
-      } else {
-        toast.success("Test created successfully!");
-      }
-
-      reset();
-      setSelectedChapters([]);
-      setChapters([]);
-      setSelectedDifficulty("");
-      setSelectedSubject("all");
-      setSelectedStandard("all");
-
-      navigate({ to: "/Dashboard" });
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Failed to create test");
-      console.error("Error creating test:", err);
-    } finally {
-      setLoading(false);
-    }
+    createTestMutation.mutate(testData);
   };
 
+  if (userLoading || coursesLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <span className="text-lg font-medium text-muted-foreground">
+            Loading...
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (coursesError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6 text-center">
+            <GraduationCap className="w-12 h-12 text-destructive mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Failed to load data</h3>
+            <p className="text-muted-foreground">Please try again later.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold tracking-tight mb-2">
             Create New Test
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-muted-foreground text-lg">
             Configure your test parameters and difficulty distribution
           </p>
         </div>
 
         <ScrollArea className="h-[calc(100vh-200px)]">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pr-4">
-            {/* Test Information */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <FileText className="w-6 h-6" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
                   Test Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-6">
+              <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="title"
-                      className="text-sm font-semibold text-gray-700"
-                    >
-                      Test Title *
-                    </Label>
+                    <Label htmlFor="title">Test Title *</Label>
                     <Input
                       id="title"
                       {...register("title")}
                       placeholder="Enter test title"
-                      className="h-11"
                     />
                     {errors.title && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-destructive text-sm">
                         {errors.title.message}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="numberOfQuestions"
-                      className="text-sm font-semibold text-gray-700"
-                    >
+                    <Label htmlFor="numberOfQuestions">
                       Number of Questions *
                     </Label>
                     <Input
@@ -399,10 +411,9 @@ export function CreateTestPage() {
                       })}
                       min="1"
                       max="50"
-                      className="h-11"
                     />
                     {errors.numberOfQuestions && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-destructive text-sm">
                         {errors.numberOfQuestions.message}
                       </p>
                     )}
@@ -410,26 +421,19 @@ export function CreateTestPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="description"
-                    className="text-sm font-semibold text-gray-700"
-                  >
-                    Description
-                  </Label>
-                  <Input
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
                     id="description"
                     {...register("description")}
                     placeholder="Enter test description (optional)"
-                    className="h-11"
+                    rows={3}
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="totalMarks"
-                      className="text-sm font-semibold text-gray-700"
-                    >
+                    <Label htmlFor="totalMarks">
+                      <Target className="w-4 h-4 inline mr-1" />
                       Total Marks *
                     </Label>
                     <Input
@@ -437,20 +441,17 @@ export function CreateTestPage() {
                       type="number"
                       {...register("totalMarks", { valueAsNumber: true })}
                       min="1"
-                      className="h-11"
                     />
                     {errors.totalMarks && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-destructive text-sm">
                         {errors.totalMarks.message}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="passingMarks"
-                      className="text-sm font-semibold text-gray-700"
-                    >
+                    <Label htmlFor="passingMarks">
+                      <Check className="w-4 h-4 inline mr-1" />
                       Passing Marks *
                     </Label>
                     <Input
@@ -458,20 +459,17 @@ export function CreateTestPage() {
                       type="number"
                       {...register("passingMarks", { valueAsNumber: true })}
                       min="1"
-                      className="h-11"
                     />
                     {errors.passingMarks && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-destructive text-sm">
                         {errors.passingMarks.message}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="timeLimit"
-                      className="text-sm font-semibold text-gray-700"
-                    >
+                    <Label htmlFor="timeLimit">
+                      <Clock className="w-4 h-4 inline mr-1" />
                       Time Limit (minutes) *
                     </Label>
                     <Input
@@ -479,10 +477,9 @@ export function CreateTestPage() {
                       type="number"
                       {...register("timeLimit", { valueAsNumber: true })}
                       min="1"
-                      className="h-11"
                     />
                     {errors.timeLimit && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-destructive text-sm">
                         {errors.timeLimit.message}
                       </p>
                     )}
@@ -491,27 +488,21 @@ export function CreateTestPage() {
               </CardContent>
             </Card>
 
-            {/* Course Selection */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <BookOpen className="w-6 h-6" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="w-5 h-5" />
                   Course Selection
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent>
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="course"
-                    className="text-sm font-semibold text-gray-700"
-                  >
-                    Select Course *
-                  </Label>
+                  <Label htmlFor="course">Select Course *</Label>
                   <Select
                     onValueChange={handleCourseChange}
                     disabled={coursesLoading}
                   >
-                    <SelectTrigger className="h-11">
+                    <SelectTrigger>
                       {coursesLoading ? (
                         <div className="flex items-center gap-2">
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -522,12 +513,12 @@ export function CreateTestPage() {
                       )}
                     </SelectTrigger>
                     <SelectContent>
-                      {courses.map((course) => (
+                      {courses.map((course: Course) => (
                         <SelectItem key={course.id} value={String(course.id)}>
                           <div className="flex flex-col">
                             <span className="font-medium">{course.name}</span>
                             {course.description && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-muted-foreground">
                                 {course.description}
                               </span>
                             )}
@@ -537,7 +528,7 @@ export function CreateTestPage() {
                     </SelectContent>
                   </Select>
                   {errors.courseId && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-destructive text-sm">
                       {errors.courseId.message}
                     </p>
                   )}
@@ -545,25 +536,19 @@ export function CreateTestPage() {
               </CardContent>
             </Card>
 
-            {/* Chapter Selection */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <FileText className="w-6 h-6" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
                   Chapter Selection
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
+              <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold text-gray-700">
-                      Select Chapters *
-                    </Label>
+                    <Label>Select Chapters *</Label>
                     {selectedChapters.length > 0 && (
-                      <Badge
-                        variant="secondary"
-                        className="bg-purple-100 text-purple-700"
-                      >
+                      <Badge variant="secondary">
                         {selectedChapters.length} chapter(s) selected
                       </Badge>
                     )}
@@ -573,7 +558,7 @@ export function CreateTestPage() {
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full h-12 border-2 border-purple-200 hover:border-purple-300"
+                        className="w-full h-12 border-dashed"
                         disabled={chaptersLoading || chapters.length === 0}
                         type="button"
                       >
@@ -591,35 +576,30 @@ export function CreateTestPage() {
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
                       <DialogHeader>
-                        <DialogTitle className="text-xl">
-                          Select Chapters
-                        </DialogTitle>
+                        <DialogTitle>Select Chapters</DialogTitle>
                       </DialogHeader>
 
-                      {/* Filters */}
                       <div className="space-y-4 border-b pb-4">
                         <div className="flex items-center gap-2 mb-3">
-                          <Filter className="w-4 h-4 text-gray-500" />
+                          <Filter className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm font-medium">Filters:</span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <Label className="text-xs font-medium text-gray-600">
-                              Subject
-                            </Label>
+                            <Label className="text-sm">Subject</Label>
                             <Select
                               value={selectedSubject}
                               onValueChange={setSelectedSubject}
                             >
-                              <SelectTrigger className="h-9">
+                              <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="all">
                                   All Subjects
                                 </SelectItem>
-                                {uniqueSubjects.map((subject) => (
+                                {uniqueSubjects.map((subject: string) => (
                                   <SelectItem key={subject} value={subject}>
                                     {subject}
                                   </SelectItem>
@@ -629,21 +609,19 @@ export function CreateTestPage() {
                           </div>
 
                           <div>
-                            <Label className="text-xs font-medium text-gray-600">
-                              Standard
-                            </Label>
+                            <Label className="text-sm">Standard</Label>
                             <Select
                               value={selectedStandard}
                               onValueChange={setSelectedStandard}
                             >
-                              <SelectTrigger className="h-9">
+                              <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="all">
                                   All Standards
                                 </SelectItem>
-                                {uniqueStandards.map((standard) => (
+                                {uniqueStandards.map((standard: string) => (
                                   <SelectItem key={standard} value={standard}>
                                     Standard {standard}
                                   </SelectItem>
@@ -658,10 +636,10 @@ export function CreateTestPage() {
                               variant="outline"
                               size="sm"
                               onClick={handleSelectAllFiltered}
-                              className="h-9 w-full"
+                              className="w-full"
                             >
                               {filteredChapters.length > 0 &&
-                              filteredChapters.every((chapter) =>
+                              filteredChapters.every((chapter: Chapter) =>
                                 selectedChapters.includes(chapter.id)
                               ) ? (
                                 <>
@@ -678,7 +656,7 @@ export function CreateTestPage() {
                           </div>
                         </div>
 
-                        <div className="text-xs text-gray-500">
+                        <div className="text-sm text-muted-foreground">
                           Showing {filteredChapters.length} of {chapters.length}{" "}
                           chapters
                         </div>
@@ -690,7 +668,7 @@ export function CreateTestPage() {
                             ([groupName, groupChapters]) => (
                               <div key={groupName} className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                  <h4 className="font-semibold text-sm text-gray-700 bg-gray-100 px-3 py-1 rounded-full">
+                                  <h4 className="font-semibold text-sm bg-muted px-3 py-1 rounded-full">
                                     {groupName}
                                   </h4>
                                   <Button
@@ -698,12 +676,15 @@ export function CreateTestPage() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() =>
-                                      handleSelectGroup(groupChapters)
+                                      handleSelectGroup(
+                                        groupChapters as Chapter[]
+                                      )
                                     }
                                     className="h-6 text-xs"
                                   >
-                                    {groupChapters.every((chapter) =>
-                                      selectedChapters.includes(chapter.id)
+                                    {(groupChapters as Chapter[]).every(
+                                      (chapter: Chapter) =>
+                                        selectedChapters.includes(chapter.id)
                                     ) ? (
                                       <>
                                         <X className="w-3 h-3 mr-1" />
@@ -719,39 +700,41 @@ export function CreateTestPage() {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-4">
-                                  {groupChapters.map((chapter) => (
-                                    <div
-                                      key={chapter.id}
-                                      className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg border border-gray-100"
-                                    >
-                                      <Checkbox
-                                        id={`chapter-${chapter.id}`}
-                                        checked={selectedChapters.includes(
-                                          chapter.id
-                                        )}
-                                        onCheckedChange={(checked) => {
-                                          if (checked) {
-                                            setSelectedChapters((prev) => [
-                                              ...prev,
-                                              chapter.id,
-                                            ]);
-                                          } else {
-                                            setSelectedChapters((prev) =>
-                                              prev.filter(
-                                                (id) => id !== chapter.id
-                                              )
-                                            );
-                                          }
-                                        }}
-                                      />
-                                      <label
-                                        htmlFor={`chapter-${chapter.id}`}
-                                        className="text-sm cursor-pointer flex-1"
+                                  {(groupChapters as Chapter[]).map(
+                                    (chapter: Chapter) => (
+                                      <div
+                                        key={chapter.id}
+                                        className="flex items-center space-x-3 p-3 hover:bg-muted/50 rounded-lg border"
                                       >
-                                        {chapter.name}
-                                      </label>
-                                    </div>
-                                  ))}
+                                        <Checkbox
+                                          id={`chapter-${chapter.id}`}
+                                          checked={selectedChapters.includes(
+                                            chapter.id
+                                          )}
+                                          onCheckedChange={(checked) => {
+                                            if (checked) {
+                                              setSelectedChapters((prev) => [
+                                                ...prev,
+                                                chapter.id,
+                                              ]);
+                                            } else {
+                                              setSelectedChapters((prev) =>
+                                                prev.filter(
+                                                  (id) => id !== chapter.id
+                                                )
+                                              );
+                                            }
+                                          }}
+                                        />
+                                        <label
+                                          htmlFor={`chapter-${chapter.id}`}
+                                          className="text-sm cursor-pointer flex-1"
+                                        >
+                                          {chapter.name}
+                                        </label>
+                                      </div>
+                                    )
+                                  )}
                                 </div>
                               </div>
                             )
@@ -760,13 +743,10 @@ export function CreateTestPage() {
                       </ScrollArea>
 
                       <div className="flex justify-between items-center pt-4 border-t">
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-muted-foreground">
                           {selectedChapters.length} chapters selected
                         </span>
-                        <Button
-                          onClick={() => setIsDialogOpen(false)}
-                          className="bg-purple-600 hover:bg-purple-700"
-                        >
+                        <Button onClick={() => setIsDialogOpen(false)}>
                           Done
                         </Button>
                       </div>
@@ -774,7 +754,7 @@ export function CreateTestPage() {
                   </Dialog>
 
                   {errors.chapterIds && (
-                    <p className="text-red-500 text-sm">
+                    <p className="text-destructive text-sm">
                       {errors.chapterIds.message}
                     </p>
                   )}
@@ -782,29 +762,23 @@ export function CreateTestPage() {
               </CardContent>
             </Card>
 
-            {/* Exam Type and Teacher ID */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <Users className="w-6 h-6" />
-                  Test Details
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  Test Configuration
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-6">
+              <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="examType"
-                      className="text-sm font-semibold text-gray-700"
-                    >
-                      Exam Type *
-                    </Label>
+                    <Label htmlFor="examType">Exam Type *</Label>
                     <Select
                       onValueChange={(val) =>
                         setValue("examTypeId", Number(val))
                       }
                     >
-                      <SelectTrigger className="h-11">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select exam type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -813,49 +787,39 @@ export function CreateTestPage() {
                       </SelectContent>
                     </Select>
                     {errors.examTypeId && (
-                      <p className="text-red-500 text-sm">
+                      <p className="text-destructive text-sm">
                         {errors.examTypeId.message}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label
-                      htmlFor="teacherId"
-                      className="text-sm font-semibold text-gray-700"
-                    >
-                      Teacher ID
-                    </Label>
+                    <Label htmlFor="teacherId">Teacher ID</Label>
                     <Input
                       id="teacherId"
                       type="number"
                       {...register("teacherId", { valueAsNumber: true })}
                       readOnly
-                      className="h-11 bg-gray-50"
+                      className="bg-muted"
                     />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Difficulty Configuration */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <Sliders className="w-6 h-6" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sliders className="w-5 h-5" />
                   Difficulty Configuration
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6 p-6">
-                {/* Overall Difficulty Selection */}
+              <CardContent className="space-y-6">
                 <div>
-                  <Label className="text-sm font-semibold text-gray-700 mb-3 block">
+                  <Label className="text-sm font-medium mb-3 block">
                     Quick Difficulty Preset
                     {selectedDifficulty && (
-                      <Badge
-                        variant="outline"
-                        className="ml-2 border-indigo-300 text-indigo-700"
-                      >
+                      <Badge variant="outline" className="ml-2">
                         {selectedDifficulty.charAt(0).toUpperCase() +
                           selectedDifficulty.slice(1)}{" "}
                         Selected
@@ -867,68 +831,63 @@ export function CreateTestPage() {
                     onValueChange={handleOverallDifficultyChange}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4"
                   >
-                    <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50">
                       <RadioGroupItem value="EASY" id="difficulty-easy" />
                       <label
                         htmlFor="difficulty-easy"
                         className="text-sm cursor-pointer flex-1"
                       >
                         <div className="font-medium">Easy</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           70% Easy, 25% Medium, 5% Hard
                         </div>
                       </label>
                     </div>
-                    <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50">
                       <RadioGroupItem value="MEDIUM" id="difficulty-medium" />
                       <label
                         htmlFor="difficulty-medium"
                         className="text-sm cursor-pointer flex-1"
                       >
                         <div className="font-medium">Medium</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           30% Easy, 50% Medium, 20% Hard
                         </div>
                       </label>
                     </div>
-                    <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-muted/50">
                       <RadioGroupItem value="HARD" id="difficulty-hard" />
                       <label
                         htmlFor="difficulty-hard"
                         className="text-sm cursor-pointer flex-1"
                       >
                         <div className="font-medium">Hard</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           15% Easy, 35% Medium, 50% Hard
                         </div>
                       </label>
                     </div>
                   </RadioGroup>
-                  <p className="text-xs text-gray-500 mt-3">
+                  <p className="text-xs text-muted-foreground mt-3">
                     Select a preset to automatically set the difficulty
                     percentages, or manually adjust sliders below.
                   </p>
                 </div>
 
-                {/* Separator with OR */}
                 <div className="relative">
                   <Separator />
                   <div className="absolute inset-0 flex justify-center">
-                    <span className="bg-white px-4 text-sm text-gray-500 font-medium">
+                    <span className="bg-background px-4 text-sm text-muted-foreground font-medium">
                       OR
                     </span>
                   </div>
                 </div>
 
-                {/* Difficulty Distribution */}
                 <div className="space-y-6">
-                  <Label className="text-sm font-semibold text-gray-700">
+                  <Label className="text-sm font-medium">
                     Custom Difficulty Distribution
                     {!selectedDifficulty && totalPercent > 0 && (
-                      <Badge
-                        variant="outline"
-                        className="ml-2 border-indigo-300 text-indigo-700"
-                      >
+                      <Badge variant="outline" className="ml-2">
                         Custom Settings Active
                       </Badge>
                     )}
@@ -1026,26 +985,22 @@ export function CreateTestPage() {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border">
+                  <div className="p-4 bg-muted rounded-lg border">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-semibold text-gray-700">
+                      <span className="text-sm font-medium">
                         Total Percentage
                       </span>
                       <Badge
                         variant={
                           totalPercent === 100 ? "default" : "destructive"
                         }
-                        className={`font-bold ${
-                          totalPercent === 100
-                            ? "bg-green-600 hover:bg-green-700"
-                            : ""
-                        }`}
+                        className="font-bold"
                       >
                         {totalPercent}%
                       </Badge>
                     </div>
                     {totalPercent !== 100 && (
-                      <p className="text-red-500 text-xs mt-2 font-medium">
+                      <p className="text-destructive text-xs mt-2 font-medium">
                         Must equal 100% to create test
                       </p>
                     )}
@@ -1054,16 +1009,15 @@ export function CreateTestPage() {
               </CardContent>
             </Card>
 
-            {/* Publishing Options */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center gap-2 text-xl">
-                  <FileText className="w-6 h-6" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
                   Publishing Options
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-3 p-4 bg-teal-50 rounded-lg border border-teal-200">
+              <CardContent>
+                <div className="flex items-center space-x-3 p-4 bg-muted/50 rounded-lg border">
                   <Controller
                     control={control}
                     name="publishImmediately"
@@ -1078,32 +1032,31 @@ export function CreateTestPage() {
                   <div className="flex-1">
                     <Label
                       htmlFor="publishImmediately"
-                      className="text-sm font-semibold text-gray-700 cursor-pointer"
+                      className="text-sm font-medium cursor-pointer"
                     >
                       Publish test immediately after creation
                     </Label>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       If unchecked, the test will be saved as a draft and can be
-                      published later from the tests management page.
+                      published later.
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Submit Button */}
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+            <Card>
               <CardContent className="p-6">
                 <Button
                   type="submit"
                   disabled={
-                    loading ||
+                    createTestMutation.isPending ||
                     totalPercent !== 100 ||
                     selectedChapters.length === 0
                   }
-                  className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500"
+                  className="w-full h-12 text-lg font-medium"
                 >
-                  {loading ? (
+                  {createTestMutation.isPending ? (
                     <div className="flex items-center gap-2">
                       <Loader2 className="w-5 h-5 animate-spin" />
                       Creating Test...
