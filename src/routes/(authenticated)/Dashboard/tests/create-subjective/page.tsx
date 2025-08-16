@@ -16,7 +16,7 @@ import { toast } from "sonner"
 import { PlusCircle, Trash2, Clock, BookOpen, User, Target, CheckCircle, FileText, GraduationCap } from "lucide-react"
 
 /* -------------------------------------------------
- * 1. Schema – now includes totalMarks, passingMarks, description
+ * 1. Schema 
  * ------------------------------------------------- */
 const subjectiveTestSchema = z
   .object({

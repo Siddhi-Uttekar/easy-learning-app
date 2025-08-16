@@ -25,7 +25,9 @@ import { Route as authenticatedDashboardTestsCreateRouteRouteImport } from './ro
 import { Route as authenticatedDashboardTestsCreateSubjectiveIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/create-subjective/index'
 import { Route as authenticatedDashboardTestsTestIdIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/index'
 import { Route as authenticatedDashboardTestsAttemptsAttemptIdRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/attempts/$attemptId/route'
+import { Route as authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/submit-subjective/route'
 import { Route as authenticatedDashboardTestsTestIdStartRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/start/route'
+import { Route as authenticatedDashboardTestsTestIdSubmitSubjectivePageRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/submit-subjective/page'
 
 const authenticatedRouteRoute = authenticatedRouteRouteImport.update({
   id: '/(authenticated)',
@@ -115,11 +117,24 @@ const authenticatedDashboardTestsAttemptsAttemptIdRouteRoute =
     path: '/tests/attempts/$attemptId',
     getParentRoute: () => authenticatedDashboardRouteRoute,
   } as any)
+const authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRoute =
+  authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteImport.update({
+    id: '/tests/$testId/submit-subjective',
+    path: '/tests/$testId/submit-subjective',
+    getParentRoute: () => authenticatedDashboardRouteRoute,
+  } as any)
 const authenticatedDashboardTestsTestIdStartRouteRoute =
   authenticatedDashboardTestsTestIdStartRouteRouteImport.update({
     id: '/tests/$testId/start',
     path: '/tests/$testId/start',
     getParentRoute: () => authenticatedDashboardRouteRoute,
+  } as any)
+const authenticatedDashboardTestsTestIdSubmitSubjectivePageRoute =
+  authenticatedDashboardTestsTestIdSubmitSubjectivePageRouteImport.update({
+    id: '/page',
+    path: '/page',
+    getParentRoute: () =>
+      authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -135,9 +150,11 @@ export interface FileRoutesByFullPath {
   '/Dashboard/tests/create': typeof authenticatedDashboardTestsCreateRouteRoute
   '/Dashboard/tests': typeof authenticatedDashboardTestsIndexRoute
   '/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
+  '/Dashboard/tests/$testId/submit-subjective': typeof authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteWithChildren
   '/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
   '/Dashboard/tests/$testId': typeof authenticatedDashboardTestsTestIdIndexRoute
   '/Dashboard/tests/create-subjective': typeof authenticatedDashboardTestsCreateSubjectiveIndexRoute
+  '/Dashboard/tests/$testId/submit-subjective/page': typeof authenticatedDashboardTestsTestIdSubmitSubjectivePageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof authenticatedRouteRouteWithChildren
@@ -151,9 +168,11 @@ export interface FileRoutesByTo {
   '/Dashboard/tests/create': typeof authenticatedDashboardTestsCreateRouteRoute
   '/Dashboard/tests': typeof authenticatedDashboardTestsIndexRoute
   '/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
+  '/Dashboard/tests/$testId/submit-subjective': typeof authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteWithChildren
   '/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
   '/Dashboard/tests/$testId': typeof authenticatedDashboardTestsTestIdIndexRoute
   '/Dashboard/tests/create-subjective': typeof authenticatedDashboardTestsCreateSubjectiveIndexRoute
+  '/Dashboard/tests/$testId/submit-subjective/page': typeof authenticatedDashboardTestsTestIdSubmitSubjectivePageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -171,9 +190,11 @@ export interface FileRoutesById {
   '/(authenticated)/Dashboard/tests/create': typeof authenticatedDashboardTestsCreateRouteRoute
   '/(authenticated)/Dashboard/tests/': typeof authenticatedDashboardTestsIndexRoute
   '/(authenticated)/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
+  '/(authenticated)/Dashboard/tests/$testId/submit-subjective': typeof authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteWithChildren
   '/(authenticated)/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
   '/(authenticated)/Dashboard/tests/$testId/': typeof authenticatedDashboardTestsTestIdIndexRoute
   '/(authenticated)/Dashboard/tests/create-subjective/': typeof authenticatedDashboardTestsCreateSubjectiveIndexRoute
+  '/(authenticated)/Dashboard/tests/$testId/submit-subjective/page': typeof authenticatedDashboardTestsTestIdSubmitSubjectivePageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -190,9 +211,11 @@ export interface FileRouteTypes {
     | '/Dashboard/tests/create'
     | '/Dashboard/tests'
     | '/Dashboard/tests/$testId/start'
+    | '/Dashboard/tests/$testId/submit-subjective'
     | '/Dashboard/tests/attempts/$attemptId'
     | '/Dashboard/tests/$testId'
     | '/Dashboard/tests/create-subjective'
+    | '/Dashboard/tests/$testId/submit-subjective/page'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -206,9 +229,11 @@ export interface FileRouteTypes {
     | '/Dashboard/tests/create'
     | '/Dashboard/tests'
     | '/Dashboard/tests/$testId/start'
+    | '/Dashboard/tests/$testId/submit-subjective'
     | '/Dashboard/tests/attempts/$attemptId'
     | '/Dashboard/tests/$testId'
     | '/Dashboard/tests/create-subjective'
+    | '/Dashboard/tests/$testId/submit-subjective/page'
   id:
     | '__root__'
     | '/'
@@ -225,9 +250,11 @@ export interface FileRouteTypes {
     | '/(authenticated)/Dashboard/tests/create'
     | '/(authenticated)/Dashboard/tests/'
     | '/(authenticated)/Dashboard/tests/$testId/start'
+    | '/(authenticated)/Dashboard/tests/$testId/submit-subjective'
     | '/(authenticated)/Dashboard/tests/attempts/$attemptId'
     | '/(authenticated)/Dashboard/tests/$testId/'
     | '/(authenticated)/Dashboard/tests/create-subjective/'
+    | '/(authenticated)/Dashboard/tests/$testId/submit-subjective/page'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -350,12 +377,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRouteImport
       parentRoute: typeof authenticatedDashboardRouteRoute
     }
+    '/(authenticated)/Dashboard/tests/$testId/submit-subjective': {
+      id: '/(authenticated)/Dashboard/tests/$testId/submit-subjective'
+      path: '/tests/$testId/submit-subjective'
+      fullPath: '/Dashboard/tests/$testId/submit-subjective'
+      preLoaderRoute: typeof authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteImport
+      parentRoute: typeof authenticatedDashboardRouteRoute
+    }
     '/(authenticated)/Dashboard/tests/$testId/start': {
       id: '/(authenticated)/Dashboard/tests/$testId/start'
       path: '/tests/$testId/start'
       fullPath: '/Dashboard/tests/$testId/start'
       preLoaderRoute: typeof authenticatedDashboardTestsTestIdStartRouteRouteImport
       parentRoute: typeof authenticatedDashboardRouteRoute
+    }
+    '/(authenticated)/Dashboard/tests/$testId/submit-subjective/page': {
+      id: '/(authenticated)/Dashboard/tests/$testId/submit-subjective/page'
+      path: '/page'
+      fullPath: '/Dashboard/tests/$testId/submit-subjective/page'
+      preLoaderRoute: typeof authenticatedDashboardTestsTestIdSubmitSubjectivePageRouteImport
+      parentRoute: typeof authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRoute
     }
   }
 }
@@ -374,6 +415,21 @@ const authRouteRouteWithChildren = authRouteRoute._addFileChildren(
   authRouteRouteChildren,
 )
 
+interface authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteChildren {
+  authenticatedDashboardTestsTestIdSubmitSubjectivePageRoute: typeof authenticatedDashboardTestsTestIdSubmitSubjectivePageRoute
+}
+
+const authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteChildren: authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteChildren =
+  {
+    authenticatedDashboardTestsTestIdSubmitSubjectivePageRoute:
+      authenticatedDashboardTestsTestIdSubmitSubjectivePageRoute,
+  }
+
+const authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteWithChildren =
+  authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRoute._addFileChildren(
+    authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteChildren,
+  )
+
 interface authenticatedDashboardRouteRouteChildren {
   authenticatedDashboardCoursesRouteRoute: typeof authenticatedDashboardCoursesRouteRoute
   authenticatedDashboardCreateCourseRouteRoute: typeof authenticatedDashboardCreateCourseRouteRoute
@@ -382,6 +438,7 @@ interface authenticatedDashboardRouteRouteChildren {
   authenticatedDashboardTestsCreateRouteRoute: typeof authenticatedDashboardTestsCreateRouteRoute
   authenticatedDashboardTestsIndexRoute: typeof authenticatedDashboardTestsIndexRoute
   authenticatedDashboardTestsTestIdStartRouteRoute: typeof authenticatedDashboardTestsTestIdStartRouteRoute
+  authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRoute: typeof authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteWithChildren
   authenticatedDashboardTestsAttemptsAttemptIdRouteRoute: typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
   authenticatedDashboardTestsTestIdIndexRoute: typeof authenticatedDashboardTestsTestIdIndexRoute
   authenticatedDashboardTestsCreateSubjectiveIndexRoute: typeof authenticatedDashboardTestsCreateSubjectiveIndexRoute
@@ -401,6 +458,8 @@ const authenticatedDashboardRouteRouteChildren: authenticatedDashboardRouteRoute
       authenticatedDashboardTestsIndexRoute,
     authenticatedDashboardTestsTestIdStartRouteRoute:
       authenticatedDashboardTestsTestIdStartRouteRoute,
+    authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRoute:
+      authenticatedDashboardTestsTestIdSubmitSubjectiveRouteRouteWithChildren,
     authenticatedDashboardTestsAttemptsAttemptIdRouteRoute:
       authenticatedDashboardTestsAttemptsAttemptIdRouteRoute,
     authenticatedDashboardTestsTestIdIndexRoute:
