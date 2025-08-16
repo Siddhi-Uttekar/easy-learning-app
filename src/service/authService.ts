@@ -1,31 +1,27 @@
 import api from "@/lib/axios";
 import { store } from "@/store";
-import { loginSuccess } from "@/store/slices/authSlice";
-
+import { loginSuccess, logout } from "@/store/slices/authSlice";
+import { queryClient } from "@/lib/queryClient";
 import { jwtDecode } from "jwt-decode";
 
-class AuthService {
-  public user: any = null;
+export const USER_QUERY_KEY = ["user"] as const;
 
-  //function to send otp
+class AuthService {
   async sendOtp(email: string) {
     return api.post("/auth/send-otp", { email });
   }
 
-  //function to verify otp
   async verifyOtp(email: string, otp: string) {
     try {
       const res = await api.post("/auth/verify-otp", { email, otp });
       const { access_token, isNewUser } = res.data;
 
-      console.log("token", access_token);
-
       store.dispatch(loginSuccess({ accessToken: access_token }));
-
       localStorage.setItem("accessToken", access_token);
-      api.get("/auth/me").then((response) => {
-        this.user = response.data.user;
-        console.log("User data:", this.user);
+
+      await queryClient.prefetchQuery({
+        queryKey: USER_QUERY_KEY,
+        queryFn: this.fetchUserData,
       });
 
       return { isNewUser };
@@ -33,6 +29,24 @@ class AuthService {
       console.error("OTP verification failed:", error);
       throw error;
     }
+  }
+
+  async fetchUserData() {
+    const token =
+      store.getState().auth.accessToken || localStorage.getItem("accessToken");
+
+    if (!token) {
+      throw new Error("No access token available");
+    }
+
+    const response = await api.get("/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log({ response });
+
+    return response.data.user;
   }
 
   isLoggedIn() {
@@ -54,40 +68,42 @@ class AuthService {
       return false;
     }
   }
-  async getUser() {
-    if (this.user) {
-      return this.user;
-    }
-
-    try {
-      const response = await api.get("/auth/me", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      });
-      this.user = response.data.user;
-      return this.user;
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-      throw error;
-    }
-  }
 
   getUserFromToken() {
-  const token = store.getState().auth.accessToken || localStorage.getItem("accessToken");
-  if (!token) return null;
-  try {
-    const decoded: any = jwtDecode(token);
-    return {
-      id: decoded.sub, // Use sub as id!
-      role: decoded.role,
-      email: decoded.email,
-    };
-  } catch (error) {
-    console.error("Invalid token:", error);
-    return null;
+    const token =
+      store.getState().auth.accessToken || localStorage.getItem("accessToken");
+    if (!token) return null;
+
+    try {
+      const decoded: any = jwtDecode(token);
+      return {
+        id: decoded.sub,
+        role: decoded.role,
+        email: decoded.email,
+      };
+    } catch (error) {
+      console.error("Invalid token:", error);
+      return null;
+    }
   }
-}
+
+  logout() {
+    store.dispatch(logout());
+    localStorage.removeItem("accessToken");
+    queryClient.removeQueries({ queryKey: USER_QUERY_KEY });
+    queryClient.clear();
+  }
+
+  invalidateUserQuery() {
+    queryClient.invalidateQueries({ queryKey: USER_QUERY_KEY });
+  }
+
+  prefetchUser() {
+    return queryClient.prefetchQuery({
+      queryKey: USER_QUERY_KEY,
+      queryFn: this.fetchUserData,
+    });
+  }
 }
 
 export const authService = new AuthService();

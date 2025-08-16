@@ -21,7 +21,7 @@ import { Route as authenticatedDashboardSettingsRouteImport } from './routes/(au
 import { Route as authenticatedDashboardCreateCourseRouteRouteImport } from './routes/(authenticated)/Dashboard/create-course/route'
 import { Route as authenticatedDashboardCoursesRouteRouteImport } from './routes/(authenticated)/Dashboard/courses/route'
 import { Route as authenticatedDashboardTestsIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/index'
-import { Route as authenticatedDashboardTestsCreateRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/create/route'
+import { Route as authenticatedDashboardTestsCreateObjectiveRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/create-objective/route'
 import { Route as authenticatedDashboardTestsCreateSubjectiveIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/create-subjective/index'
 import { Route as authenticatedDashboardTestsTestIdIndexRouteImport } from './routes/(authenticated)/Dashboard/tests/$testId/index'
 import { Route as authenticatedDashboardTestsAttemptsAttemptIdRouteRouteImport } from './routes/(authenticated)/Dashboard/tests/attempts/$attemptId/route'
@@ -91,10 +91,10 @@ const authenticatedDashboardTestsIndexRoute =
     path: '/tests/',
     getParentRoute: () => authenticatedDashboardRouteRoute,
   } as any)
-const authenticatedDashboardTestsCreateRouteRoute =
-  authenticatedDashboardTestsCreateRouteRouteImport.update({
-    id: '/tests/create',
-    path: '/tests/create',
+const authenticatedDashboardTestsCreateObjectiveRouteRoute =
+  authenticatedDashboardTestsCreateObjectiveRouteRouteImport.update({
+    id: '/tests/create-objective',
+    path: '/tests/create-objective',
     getParentRoute: () => authenticatedDashboardRouteRoute,
   } as any)
 const authenticatedDashboardTestsCreateSubjectiveIndexRoute =
@@ -132,7 +132,7 @@ export interface FileRoutesByFullPath {
   '/Dashboard/create-course': typeof authenticatedDashboardCreateCourseRouteRoute
   '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
   '/Dashboard/': typeof authenticatedDashboardIndexRoute
-  '/Dashboard/tests/create': typeof authenticatedDashboardTestsCreateRouteRoute
+  '/Dashboard/tests/create-objective': typeof authenticatedDashboardTestsCreateObjectiveRouteRoute
   '/Dashboard/tests': typeof authenticatedDashboardTestsIndexRoute
   '/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
   '/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
@@ -148,7 +148,7 @@ export interface FileRoutesByTo {
   '/Dashboard/create-course': typeof authenticatedDashboardCreateCourseRouteRoute
   '/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
   '/Dashboard': typeof authenticatedDashboardIndexRoute
-  '/Dashboard/tests/create': typeof authenticatedDashboardTestsCreateRouteRoute
+  '/Dashboard/tests/create-objective': typeof authenticatedDashboardTestsCreateObjectiveRouteRoute
   '/Dashboard/tests': typeof authenticatedDashboardTestsIndexRoute
   '/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
   '/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
@@ -168,7 +168,7 @@ export interface FileRoutesById {
   '/(authenticated)/Dashboard/create-course': typeof authenticatedDashboardCreateCourseRouteRoute
   '/(authenticated)/Dashboard/settings': typeof authenticatedDashboardSettingsRoute
   '/(authenticated)/Dashboard/': typeof authenticatedDashboardIndexRoute
-  '/(authenticated)/Dashboard/tests/create': typeof authenticatedDashboardTestsCreateRouteRoute
+  '/(authenticated)/Dashboard/tests/create-objective': typeof authenticatedDashboardTestsCreateObjectiveRouteRoute
   '/(authenticated)/Dashboard/tests/': typeof authenticatedDashboardTestsIndexRoute
   '/(authenticated)/Dashboard/tests/$testId/start': typeof authenticatedDashboardTestsTestIdStartRouteRoute
   '/(authenticated)/Dashboard/tests/attempts/$attemptId': typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
@@ -187,7 +187,7 @@ export interface FileRouteTypes {
     | '/Dashboard/create-course'
     | '/Dashboard/settings'
     | '/Dashboard/'
-    | '/Dashboard/tests/create'
+    | '/Dashboard/tests/create-objective'
     | '/Dashboard/tests'
     | '/Dashboard/tests/$testId/start'
     | '/Dashboard/tests/attempts/$attemptId'
@@ -203,7 +203,7 @@ export interface FileRouteTypes {
     | '/Dashboard/create-course'
     | '/Dashboard/settings'
     | '/Dashboard'
-    | '/Dashboard/tests/create'
+    | '/Dashboard/tests/create-objective'
     | '/Dashboard/tests'
     | '/Dashboard/tests/$testId/start'
     | '/Dashboard/tests/attempts/$attemptId'
@@ -222,7 +222,7 @@ export interface FileRouteTypes {
     | '/(authenticated)/Dashboard/create-course'
     | '/(authenticated)/Dashboard/settings'
     | '/(authenticated)/Dashboard/'
-    | '/(authenticated)/Dashboard/tests/create'
+    | '/(authenticated)/Dashboard/tests/create-objective'
     | '/(authenticated)/Dashboard/tests/'
     | '/(authenticated)/Dashboard/tests/$testId/start'
     | '/(authenticated)/Dashboard/tests/attempts/$attemptId'
@@ -322,11 +322,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authenticatedDashboardTestsIndexRouteImport
       parentRoute: typeof authenticatedDashboardRouteRoute
     }
-    '/(authenticated)/Dashboard/tests/create': {
-      id: '/(authenticated)/Dashboard/tests/create'
-      path: '/tests/create'
-      fullPath: '/Dashboard/tests/create'
-      preLoaderRoute: typeof authenticatedDashboardTestsCreateRouteRouteImport
+    '/(authenticated)/Dashboard/tests/create-objective': {
+      id: '/(authenticated)/Dashboard/tests/create-objective'
+      path: '/tests/create-objective'
+      fullPath: '/Dashboard/tests/create-objective'
+      preLoaderRoute: typeof authenticatedDashboardTestsCreateObjectiveRouteRouteImport
       parentRoute: typeof authenticatedDashboardRouteRoute
     }
     '/(authenticated)/Dashboard/tests/create-subjective/': {
@@ -379,7 +379,7 @@ interface authenticatedDashboardRouteRouteChildren {
   authenticatedDashboardCreateCourseRouteRoute: typeof authenticatedDashboardCreateCourseRouteRoute
   authenticatedDashboardSettingsRoute: typeof authenticatedDashboardSettingsRoute
   authenticatedDashboardIndexRoute: typeof authenticatedDashboardIndexRoute
-  authenticatedDashboardTestsCreateRouteRoute: typeof authenticatedDashboardTestsCreateRouteRoute
+  authenticatedDashboardTestsCreateObjectiveRouteRoute: typeof authenticatedDashboardTestsCreateObjectiveRouteRoute
   authenticatedDashboardTestsIndexRoute: typeof authenticatedDashboardTestsIndexRoute
   authenticatedDashboardTestsTestIdStartRouteRoute: typeof authenticatedDashboardTestsTestIdStartRouteRoute
   authenticatedDashboardTestsAttemptsAttemptIdRouteRoute: typeof authenticatedDashboardTestsAttemptsAttemptIdRouteRoute
@@ -395,8 +395,8 @@ const authenticatedDashboardRouteRouteChildren: authenticatedDashboardRouteRoute
       authenticatedDashboardCreateCourseRouteRoute,
     authenticatedDashboardSettingsRoute: authenticatedDashboardSettingsRoute,
     authenticatedDashboardIndexRoute: authenticatedDashboardIndexRoute,
-    authenticatedDashboardTestsCreateRouteRoute:
-      authenticatedDashboardTestsCreateRouteRoute,
+    authenticatedDashboardTestsCreateObjectiveRouteRoute:
+      authenticatedDashboardTestsCreateObjectiveRouteRoute,
     authenticatedDashboardTestsIndexRoute:
       authenticatedDashboardTestsIndexRoute,
     authenticatedDashboardTestsTestIdStartRouteRoute:
